@@ -1,7 +1,7 @@
 #  PublicKey.pm
 #    - providing an object-oriented approach to GnuPG public keys
 #
-#  Copyright (C) 2000 Frank J. Tobin <ftobin@uiuc.edu>
+#  Copyright (C) 2000 Frank J. Tobin <ftobin@cpan.org>
 #
 #  This module is free software; you can redistribute it and/or modify it
 #  under the same terms as Perl itself.
@@ -10,16 +10,14 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: PublicKey.pm,v 1.7 2001/04/30 00:09:26 ftobin Exp $
+#  $Id: PublicKey.pm,v 1.9 2001/09/14 12:34:36 ftobin Exp $
 #
 
 package GnuPG::PublicKey;
 
 use strict;
-use GnuPG::PrimaryKey;
 
-use vars qw( @ISA );
-push @ISA, 'GnuPG::PrimaryKey';
+use base qw( GnuPG::PrimaryKey );
 
 1;
 

@@ -1,7 +1,7 @@
 #  MyTest.pm
 #    - module for use with test scripts
 #
-#  Copyright (C) 2000 Frank J. Tobin <ftobin@uiuc.edu>
+#  Copyright (C) 2000 Frank J. Tobin <ftobin@cpan.org>
 #
 #  This module is free software; you can redistribute it and/or modify it
 #  under the same terms as Perl itself.
@@ -10,7 +10,7 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: MyTest.pm,v 1.2 2000/11/21 18:03:39 ftobin Exp $
+#  $Id: MyTest.pm,v 1.3 2001/08/21 13:31:50 ftobin Exp $
 #
 
 package MyTest;

@@ -1,7 +1,7 @@
 #  Interface.pm
 #    - providing an object-oriented approach to interacting with GnuPG
 #
-#  Copyright (C) 2000 Frank J. Tobin <ftobin@uiuc.edu>
+#  Copyright (C) 2000 Frank J. Tobin <ftobin@cpan.org>
 #
 #  This module is free software; you can redistribute it and/or modify it
 #  under the same terms as Perl itself.
@@ -10,7 +10,7 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: Interface.pm,v 1.37 2001/05/03 07:40:45 ftobin Exp $
+#  $Id: Interface.pm,v 1.42 2002/06/11 16:01:14 ftobin Exp $
 #
 
 package GnuPG::Interface;
@@ -28,7 +28,7 @@ use IO::Handle;
 use GnuPG::Options;
 use GnuPG::Handles;
 
-$VERSION = '0.31';
+$VERSION = '0.32';
 
 use Class::MethodMaker
   get_set         => [ qw( call  passphrase ) ],
@@ -357,10 +357,10 @@ sub my_fileno
 {
     no strict 'refs';
     my ( $fh ) = @_;
-    die "fh is undefined" unless defined $fh;
+    croak "fh is undefined" unless defined $fh;
     return $1 if $fh =~ /^=?(\d+)$/;   # is it a fd in itself?
     my $fileno = fileno $fh;
-    die "error determining fileno for $fh: $ERRNO" unless defined $fileno;
+    croak "error determining fileno for $fh: $ERRNO" unless defined $fileno;
     return $fileno;
 }
 
@@ -770,7 +770,7 @@ GnuPG::Interface - Perl interface to GnuPG
 			      homedir => '/home/foobar' );
 
   # Note you can set the recipients even if you aren't encrypting!
-  $gnupg->options->push_recipients( 'ftobin@uiuc.edu' );
+  $gnupg->options->push_recipients( 'ftobin@cpan.org' );
   $gnupg->options->meta_interactive( 0 );
 
   # how we create some handles to interact with GnuPG
@@ -938,7 +938,7 @@ is not defined, this channel of communication is never established with GnuPG,
 and so this information is not generated and does not come into play.
 If the B<passphrase> data member handle of the B<handles> object
 is not defined, but the the B<passphrase> data member handle of GnuPG::Interface
-object is, GnupG::Interface will handle passing this information into GnuPG
+object is, GnuPG::Interface will handle passing this information into GnuPG
 for the user as a convience.  Note that this will result in
 GnuPG::Interface storing the passphrase in memory, instead of having
 it simply 'pass-through' to GnuPG via a handle.
@@ -965,7 +965,7 @@ because of performance hits when listing information with signatures.
 =item test_default_key_passphrase()
 
 This method will return a true or false value, depending
-on whether GnupG reports a good passphrase was entered
+on whether GnuPG reports a good passphrase was entered
 while signing a short message using the values of
 the B<passphrase> data member, and the default
 key specified in the B<options> data member.
@@ -1053,12 +1053,12 @@ See L<GnuPG::Options> for more information.
 The following setup can be done before any of the following examples:
 
   use IO::Handle;
-  use GnupG::Interface;
+  use GnuPG::Interface;
 
   my @original_plaintext = ( "How do you doo?" );
-  my $passphrsae = "Three Little Pigs";
+  my $passphrase = "Three Little Pigs";
 
-  my $gnupg = GnupG::Interface->new();
+  my $gnupg = GnuPG::Interface->new();
 
   $gnupg->options->hash_init( armor    => 1,
                               recipients => [ 'ftobin@uiuc.edu',
@@ -1074,7 +1074,7 @@ The following setup can be done before any of the following examples:
   my ( $input, $output ) = ( IO::Handle->new(),
                              IO::Handle->new() );
 
-  my $handles = GnupG::Handles->new( stdin    => $input,
+  my $handles = GnuPG::Handles->new( stdin    => $input,
                                      stdout   => $output );
    
   # this sets up the communication
@@ -1101,7 +1101,7 @@ The following setup can be done before any of the following examples:
                                      IO::Handle->new(),
 				   );
 
-  my $handles = GnupG::Handles->new( stdin    => $input,
+  my $handles = GnuPG::Handles->new( stdin    => $input,
                                      stdout   => $output,
                                      stderr   => $error,
 				   );
@@ -1141,7 +1141,7 @@ The following setup can be done before any of the following examples:
         IO::Handle->new(),
       );
 
-  my $handles = GnupG::Handles->new( stdin      => $input,
+  my $handles = GnuPG::Handles->new( stdin      => $input,
 				     stdout     => $output,
 				     stderr     => $error,
 				     passphrase => $passphrase_fh,
@@ -1285,7 +1285,7 @@ L<perlipc/"Bidirectional Communication with Another Process">
 
 =head1 AUTHOR
 
-Frank J. Tobin, ftobin@uiuc.edu
+Frank J. Tobin, ftobin@cpan.org
 
 =head1 PACKAGE UPDATES
 

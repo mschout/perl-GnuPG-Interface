@@ -1,7 +1,7 @@
 #  Handles.pm
 #    - interface to the handles used by GnuPG::Interface
 #
-#  Copyright (C) 2000 Frank J. Tobin <ftobin@uiuc.edu>
+#  Copyright (C) 2000 Frank J. Tobin <ftobin@cpan.org>
 #
 #  This module is free software; you can redistribute it and/or modify it
 #  under the same terms as Perl itself.
@@ -10,7 +10,7 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: Handles.pm,v 1.6 2000/11/21 18:03:39 ftobin Exp $
+#  $Id: Handles.pm,v 1.8 2001/12/09 02:24:10 ftobin Exp $
 #
 
 
@@ -58,7 +58,7 @@ GnuPG::Handles - GnuPG handles bundle
         IO::Handle->new(), IO::Handle->new(), IO::Handle->new(),
       );
  
-  my $handles = GnuPG::Handle->new
+  my $handles = GnuPG::Handles->new
     ( stdin      => $stdin,
       stdout     => $stdout,
       stderr     => $stderr,

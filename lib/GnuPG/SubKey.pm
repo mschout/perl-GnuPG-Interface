@@ -1,7 +1,7 @@
 #  SubKey.pm
 #    - providing an object-oriented approach to GnuPG sub keys
 #
-#  Copyright (C) 2000 Frank J. Tobin <ftobin@uiuc.edu>
+#  Copyright (C) 2000 Frank J. Tobin <ftobin@cpan.org>
 #
 #  This module is free software; you can redistribute it and/or modify it
 #  under the same terms as Perl itself.
@@ -10,16 +10,14 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: SubKey.pm,v 1.7 2001/04/30 00:09:26 ftobin Exp $
+#  $Id: SubKey.pm,v 1.9 2001/09/14 12:34:36 ftobin Exp $
 #
 
 package GnuPG::SubKey;
 
 use strict;
-use GnuPG::Key;
 
-use vars qw( @ISA );
-push @ISA, 'GnuPG::Key';
+use base qw( GnuPG::Key );
 
 use Class::MethodMaker
   get_set => [ qw( validity   owner_trust  local_id  signature ) ];

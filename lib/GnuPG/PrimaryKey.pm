@@ -1,7 +1,7 @@
 #  PrimaryKey.pm
 #      - objectified GnuPG primary keys (can have subkeys)
 #
-#  Copyright (C) 2000 Frank J. Tobin <ftobin@uiuc.edu>
+#  Copyright (C) 2000 Frank J. Tobin <ftobin@cpan.org>
 #
 #  This module is free software; you can redistribute it and/or modify it
 #  under the same terms as Perl itself.
@@ -10,16 +10,14 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: PrimaryKey.pm,v 1.2 2001/05/01 02:31:31 ftobin Exp $
+#  $Id: PrimaryKey.pm,v 1.4 2001/09/14 12:34:36 ftobin Exp $
 #
 
 package GnuPG::PrimaryKey;
 
 use strict;
-use GnuPG::Key;
-use vars qw( @ISA );
 
-push @ISA, 'GnuPG::Key';
+use base qw( GnuPG::Key );
 
 use Class::MethodMaker
   list          => [ qw( user_ids   subkeys  ) ],

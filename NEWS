@@ -1,3 +1,14 @@
+Noteworthy changes in 0.32
+-----------------------------------------------------------------
+
+    *	Extended the expiration on the test keys another
+	4 years so that the test suite works.
+
+    *	Documentation fixes.
+
+    *	Other small cleanups.
+
+
 Noteworthy changes in 0.31
 -----------------------------------------------------------------
 

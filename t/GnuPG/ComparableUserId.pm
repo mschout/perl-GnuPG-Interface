@@ -1,7 +1,7 @@
 #  ComparableUserId.pm
 #    - providing an object-oriented approach to GnuPG user ids
 #
-#  Copyright (C) 2000 Frank J. Tobin <ftobin@uiuc.edu>
+#  Copyright (C) 2000 Frank J. Tobin <ftobin@cpan.org>
 #
 #  This module is free software; you can redistribute it and/or modify it
 #  under the same terms as Perl itself.
@@ -10,16 +10,14 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: ComparableUserId.pm,v 1.1 2001/04/28 04:01:04 ftobin Exp $
+#  $Id: ComparableUserId.pm,v 1.3 2001/09/14 12:34:36 ftobin Exp $
 #
 
 package GnuPG::ComparableUserId;
 
 use strict;
-use vars qw( @ISA );
-use GnuPG::UserId;
 
-push @ISA, 'GnuPG::UserId';
+use base qw( GnuPG::UserId );
 
 sub compare
 {

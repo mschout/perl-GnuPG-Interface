@@ -1,7 +1,7 @@
 #  ComparableSubKey.pm
 #    - comparable GnuPG::SubKey
 #
-#  Copyright (C) 2000 Frank J. Tobin <ftobin@uiuc.edu>
+#  Copyright (C) 2000 Frank J. Tobin <ftobin@cpan.org>
 #
 #  This module is free software; you can redistribute it and/or modify it
 #  under the same terms as Perl itself.
@@ -10,21 +10,16 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: ComparableSubKey.pm,v 1.2 2001/04/30 00:09:26 ftobin Exp $
+#  $Id: ComparableSubKey.pm,v 1.4 2001/09/14 12:34:36 ftobin Exp $
 #
 
 package GnuPG::ComparableSubKey;
 
 use strict;
-use GnuPG::SubKey;
-use GnuPG::ComparableKey;
 use GnuPG::ComparableSignature;
 use GnuPG::ComparableFingerprint;
-use vars qw( @ISA );
 
-use Data::Dumper;
-
-push @ISA, 'GnuPG::SubKey', 'GnuPG::ComparableKey';
+use base qw( GnuPG::SubKey GnuPG::ComparableKey );
 
 sub compare
 {

@@ -1,7 +1,7 @@
 #  Options.pm
 #    - providing an object-oriented approach to GnuPG's options
 #
-#  Copyright (C) 2000 Frank J. Tobin <ftobin@uiuc.edu>
+#  Copyright (C) 2000 Frank J. Tobin <ftobin@cpan.org>
 #
 #  This module is free software; you can redistribute it and/or modify it
 #  under the same terms as Perl itself.
@@ -10,7 +10,7 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: Options.pm,v 1.13 2001/01/26 01:52:13 ftobin Exp $
+#  $Id: Options.pm,v 1.14 2001/08/21 13:31:50 ftobin Exp $
 #
 
 package GnuPG::Options;

@@ -1,7 +1,7 @@
 #  Signature.pm
 #    - providing an object-oriented approach to GnuPG key signatures
 #
-#  Copyright (C) 2000 Frank J. Tobin <ftobin@uiuc.edu>
+#  Copyright (C) 2000 Frank J. Tobin <ftobin@cpan.org>
 #
 #  This module is free software; you can redistribute it and/or modify it
 #  under the same terms as Perl itself.
@@ -10,7 +10,7 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: Signature.pm,v 1.3 2001/04/28 04:01:04 ftobin Exp $
+#  $Id: Signature.pm,v 1.4 2001/08/21 13:31:50 ftobin Exp $
 #
 
 package GnuPG::Signature;

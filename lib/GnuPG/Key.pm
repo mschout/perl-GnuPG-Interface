@@ -1,7 +1,7 @@
 #  Key.pm
 #    - providing an object-oriented approach to GnuPG keys
 #
-#  Copyright (C) 2000 Frank J. Tobin <ftobin@uiuc.edu>
+#  Copyright (C) 2000 Frank J. Tobin <ftobin@cpan.org>
 #
 #  This module is free software; you can redistribute it and/or modify it
 #  under the same terms as Perl itself.
@@ -10,7 +10,7 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: Key.pm,v 1.8 2001/04/30 00:09:26 ftobin Exp $
+#  $Id: Key.pm,v 1.10 2001/12/10 01:29:27 ftobin Exp $
 #
 
 package GnuPG::Key;
@@ -22,8 +22,7 @@ use Class::MethodMaker
 			 creation_date_string     expiration_date_string
 			 fingerprint
 		       ) ],
-  new_hash_init => 'new',
-  new_hash_init => 'hash_init';
+  new_hash_init => [ qw( new hash_init ) ];
 
 
 sub short_hex_id

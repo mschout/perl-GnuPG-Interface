@@ -1,7 +1,7 @@
 #  ComparablePrimaryKey.pm
 #      - Comparable GnuPG::PrimaryKey
 #
-#  Copyright (C) 2000 Frank J. Tobin <ftobin@uiuc.edu>
+#  Copyright (C) 2000 Frank J. Tobin <ftobin@cpan.org>
 #
 #  This module is free software; you can redistribute it and/or modify it
 #  under the same terms as Perl itself.
@@ -10,18 +10,15 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: ComparablePrimaryKey.pm,v 1.1 2001/05/01 02:36:28 ftobin Exp $
+#  $Id: ComparablePrimaryKey.pm,v 1.3 2001/09/14 12:34:36 ftobin Exp $
 #
 
 package GnuPG::ComparablePrimaryKey;
 
 use strict;
-use GnuPG::PrimaryKey;
-use GnuPG::ComparableKey;
 use GnuPG::ComparableSubKey;
-use vars qw( @ISA );
 
-push @ISA, 'GnuPG::PrimaryKey', 'GnuPG::ComparableKey';
+use base qw( GnuPG::PrimaryKey GnuPG::ComparableKey );
 
 sub _deeply_compare
 {

@@ -1,7 +1,7 @@
 #  ComparableSignature.pm
 #    - comparable GnuPG::Signature
 #
-#  Copyright (C) 2000 Frank J. Tobin <ftobin@uiuc.edu>
+#  Copyright (C) 2000 Frank J. Tobin <ftobin@cpan.org>
 #
 #  This module is free software; you can redistribute it and/or modify it
 #  under the same terms as Perl itself.
@@ -10,16 +10,14 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: ComparableSignature.pm,v 1.2 2001/04/30 00:09:26 ftobin Exp $
+#  $Id: ComparableSignature.pm,v 1.4 2001/09/14 12:34:36 ftobin Exp $
 #
 
 package GnuPG::ComparableSignature;
 
 use strict;
-use vars qw( @ISA );
-use GnuPG::Signature;
 
-push @ISA, 'GnuPG::Signature';
+use base qw( GnuPG::Signature );
 
 sub compare
 {
