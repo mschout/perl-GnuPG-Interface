@@ -3,6 +3,7 @@
 use strict;
 use English;
 use Symbol;
+use IO::File;
 
 use lib './t';
 use MyTest;
@@ -15,6 +16,8 @@ TEST
 };
 
 
+$gnupg->clear_passphrase();
+    
 TEST
 {
     reset_handles();
@@ -25,9 +28,30 @@ TEST
     my $pid = $gnupg->sign( handles => $handles );
     
     print $passphrase_handle 'test';
-    print $stdin @plaintext;
+    print $stdin @{ $texts{plain}->data() };
     
     close $passphrase_handle;
+    close $stdin;
+    
+    waitpid $pid, 0;
+    return $CHILD_ERROR == 0;
+};
+
+
+
+TEST
+{
+    reset_handles();
+    $handles->clear_stderr();
+    $handles->stderr( '>&STDERR' );
+    
+    my $pass_fn = 'test/passphrase';
+    my $passfile = IO::File->new( $pass_fn )
+      or die "cannot open $pass_fn: $ERRNO";
+    $handles->passphrase( $passfile );
+    $handles->options( 'passphrase' )->{direct} = 1;
+    
+    my $pid = $gnupg->sign( handles => $handles );
     close $stdin;
     
     waitpid $pid, 0;

@@ -1,3 +1,84 @@
+2000-07-13 01:51  ftobin
+
+	* README: oops, README had wrong version of C::MM in it
+
+2000-07-13 01:36  ftobin
+
+	* MANIFEST, NEWS, lib/GnuPG/Interface.pm, test/trustdb.gpg: getting
+	ready for 0.10
+
+2000-07-12 17:29  ftobin
+
+	* lib/GnuPG/Key.pm, t/export_keys.t, test/trustdb.gpg: Okay, I've
+	finally removed the epixration-field comparison test for
+	GnuPG::Keys cause Werner has released 1.0.2 without addressing my
+	complaints :(
+
+2000-07-12 03:29  ftobin
+
+	* lib/GnuPG/Interface.pm: added a FAQ item about filehandles
+	'stopping' (buffers and such)
+
+2000-07-12 03:21  ftobin
+
+	* lib/GnuPG/Handles.pm, lib/GnuPG/Interface.pm, t/clearsign.t,
+	t/decrypt.t, t/detach_sign.t, t/encrypt.t,
+	t/encrypt_symmetrically.t, t/export_keys.t, t/import_keys.t,
+	t/list_public_keys.t, t/list_secret_keys.t, t/list_sigs.t,
+	t/passphrase_handling.t, t/sign.t, t/sign_and_encrypt.t,
+	t/verify.t, test/trustdb.gpg: let's call this new GnuPG::Handles
+	option 'direct' instead of 'dup'.  'dup' is unintuitive,
+	inunderstandable by users who don't care what is actually
+	happening, and more 'generic' (read portable, time-standing)
+
+2000-07-12 03:10  ftobin
+
+	* lib/GnuPG/Interface.pm, test/trustdb.gpg: whoops, I really do
+	need to explictly dup, as well as compensate when it's an
+	already-opened filehandle.  Maybe I'll change the name to direct
+	instead of dup.
+
+2000-07-12 03:01  ftobin
+
+	* lib/GnuPG/Interface.pm: We really do need to dup the filehandles,
+	not just use the originals because sometimes the user will pass
+	">&STDOUT" :)
+
+2000-07-12 02:43  ftobin
+
+	* NEWS, lib/GnuPG/Fingerprint.pm, lib/GnuPG/Handles.pm,
+	lib/GnuPG/Interface.pm, lib/GnuPG/Key.pm, lib/GnuPG/Options.pm,
+	lib/GnuPG/PublicKey.pm, lib/GnuPG/SecretKey.pm,
+	lib/GnuPG/SubKey.pm, lib/GnuPG/UserId.pm, test/trustdb.gpg: small
+	doc changes, NEWS updates to reflect recent important commits, and
+	small Interface changes
+
+2000-07-11 21:56  ftobin
+
+	* lib/GnuPG/Handles.pm, lib/GnuPG/Interface.pm,
+	lib/GnuPG/Options.pm, t/MyTestSpecific.pm, t/clearsign.t,
+	t/decrypt.t, t/detach_sign.t, t/encrypt.t,
+	t/encrypt_symmetrically.t, t/export_keys.t, t/get_public_keys.t,
+	t/get_secret_keys.t, t/import_keys.t, t/list_public_keys.t,
+	t/list_secret_keys.t, t/list_sigs.t, t/passphrase_handling.t,
+	t/sign.t, t/sign_and_encrypt.t, t/verify.t, test/key.1.asc,
+	test/options, test/passphrase, test/trustdb.gpg: Lots of stuff on
+	this commit.  We now have better, 'option'-oriented fh dupping
+	support, instead of that crappy auto-magic stuff looking for >& and
+	the like at the beginning of fhs.  Most of the test files include a
+	test with dupping from/to a file, and a new command GnuPG::Handles
+	data member has been introduced, which links into the command-fd
+	option of GnuPG.
+
+2000-06-28 14:36  ftobin
+
+	* lib/GnuPG/Interface.pm: put in documentation about the returned
+	PID from 'normal' GnuPG calls
+
+2000-06-28 14:00  ftobin
+
+	* lib/GnuPG/Interface.pm: formatting changes in pod code
+
 2000-06-25 19:21  ftobin
 
 	* NEWS, lib/GnuPG/Interface.pm: Now allow fh's like >&=$fh, which

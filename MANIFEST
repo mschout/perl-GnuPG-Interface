@@ -37,6 +37,7 @@ t/verify.t
 test/encrypted.1.gpg
 test/key.1.asc
 test/options
+test/passphrase
 test/plain.1.txt
 test/public-keys-sigs/1.0.test
 test/public-keys-sigs/1.1.test

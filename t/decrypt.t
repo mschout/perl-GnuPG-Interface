@@ -8,18 +8,50 @@ use lib './t';
 use MyTest;
 use MyTestSpecific;
 
+my $compare;
+
 TEST
 {
     reset_handles();
     
     $gnupg->decrypt( handles => $handles );
     
-    print $stdin @encrypted_text;
+    print $stdin @{ $texts{encrypted}->data() };
     close $stdin;
     
-    my $diff = compare( 'test/plain.1.txt', $stdout );
+    $compare = compare( $texts{plain}->fn(), $stdout );
     close $stdout;
     wait;
     
-    return ( $CHILD_ERROR == 0 and not $diff );
+    return $CHILD_ERROR == 0;;
+};
+
+
+TEST
+{ 
+    return $compare == 0;
+};
+
+
+TEST
+{
+    reset_handles();
+    
+    $handles->stdin( $texts{encrypted}->fh() );
+    $handles->options( 'stdin' )->{direct} = 1;
+    
+    $handles->stdout( $texts{temp}->fh() );
+    $handles->options( 'stdout' )->{direct} = 1;
+    
+    $gnupg->decrypt( handles => $handles );
+    
+    wait;
+    
+    return $CHILD_ERROR == 0;
+};
+
+
+TEST
+{
+    return compare( $texts{plain}->fn(), $texts{temp}->fn() ) == 0;
 };

@@ -17,7 +17,7 @@
 #  along with this program; if not, visit the following URL:
 #  http://www.gnu.org
 #
-#  $Id: SecretKey.pm,v 1.2 2000/04/20 14:30:28 ftobin Exp $
+#  $Id: SecretKey.pm,v 1.3 2000/07/12 07:43:46 ftobin Exp $
 #
 
 package GnuPG::SecretKey;
@@ -125,7 +125,9 @@ See GnuPG's DETAILS file for details.
 
 =head1 SEE ALSO
 
-See also L<GnuPG::Key>, L<GnuPG::UserId>, L<GnuPG::SubKey>,
-and L<Class::MethodMaker>.
+L<GnuPG::Key>,
+L<GnuPG::UserId>,
+L<GnuPG::SubKey>,
+L<Class::MethodMaker>
 
 =cut

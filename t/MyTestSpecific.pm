@@ -17,7 +17,7 @@
 #  along with this program; if not, visit the following URL:
 #  http://www.gnu.org
 #
-#  $Id: MyTestSpecific.pm,v 1.2 2000/05/25 01:22:29 ftobin Exp $
+#  $Id: MyTestSpecific.pm,v 1.3 2000/07/12 02:56:33 ftobin Exp $
 #
 
 use strict;
@@ -25,29 +25,32 @@ use English;
 use Symbol;
 use Fatal qw/ open close /;
 use IO::File;
+use IO::Seekable;
+use File::Compare;
 use Exporter;
+use Class::Struct;
+
 use GnuPG::Interface;
 use GnuPG::Handles;
 
 use vars qw( @ISA           @EXPORT
 	     $stdin         $stdout           $stderr
-	     @plaintext     @encrypted_text   @signed_text
 	     $gpg_program   $handles          $gnupg
-	     @importable_key
+	     %texts
 	   );
 
 @ISA    = qw( Exporter );
 @EXPORT = qw( stdin                  stdout          stderr
-	      plaintext              encrypted_text  signed_text
-	      gnupg_program handles  mp              reset_handles
-	      compare_array_refs     importable_key
+	      gnupg_program handles  reset_handles
+	      texts           file_match
 	    );
 
 
 $gpg_program = 'gpg';
 
 $gnupg = GnuPG::Interface->new( gnupg_call  => $gpg_program,
-				passphrase  => 'test' );
+				passphrase  => 'test',
+			      );
 
 $gnupg->options->hash_init( homedir              => 'test',
 			    armor                => 1,
@@ -55,33 +58,32 @@ $gnupg->options->hash_init( homedir              => 'test',
 			    meta_signing_key_id  => '0xF950DA9C',
 			  );
 
+struct( Text => { fn => "\$", fh => "\$", data => "\$" } );
 
-my $filename = 'test/plain.1.txt';
-my $file = IO::File->new( $filename )
-  or die "cannot open $filename: $ERRNO";
-@plaintext = $file->getlines();
-$file->close();
+$texts{plain} = Text->new();
+$texts{plain}->fn( 'test/plain.1.txt' );
+
+$texts{encrypted} = Text->new();
+$texts{encrypted}->fn( 'test/encrypted.1.gpg' );
+
+$texts{signed} = Text->new();
+$texts{signed}->fn( 'test/signed.1.asc' );
+
+$texts{key} = Text->new();
+$texts{key}->fn( 'test/key.1.asc' );
+
+$texts{temp} = Text->new();
+$texts{temp}->fn( 'test/temp' );
 
 
-$filename = 'test/encrypted.1.gpg';
-$file = IO::File->new( $filename )
-  or die "cannot open $filename: $ERRNO";
-@encrypted_text = $file->getlines();
-$file->close();
-
-
-$filename = 'test/signed.1.asc';
-$file = IO::File->new( $filename )
-  or die "cannot open $filename: $ERRNO";
-@signed_text = $file->getlines();
-$file->close();
-
-$filename = 'test/key.1.asc';
-$file = IO::File->new( $filename )
-  or die "cannot open $filename: $ERRNO";
-@importable_key = $file->getlines();
-$file->close();
-
+foreach my $name ( qw( plain encrypted signed key ) )
+{
+    my $entry = $texts{$name};
+    my $filename = $entry->fn();
+    my $fh = IO::File->new( $filename )
+      or die "cannot open $filename: $ERRNO";
+    $entry->data( [ $fh->getlines() ] );
+}
 
 sub reset_handles
 {
@@ -95,7 +97,42 @@ sub reset_handles
 	stdout  => $stdout,
 	stderr  => $stderr
       );
+    
+    foreach my $name ( qw( plain encrypted signed key ) )
+    {
+	my $entry = $texts{$name};
+	my $filename = $entry->fn();
+	my $fh = IO::File->new( $filename )
+	  or die "cannot open $filename: $ERRNO";
+	$entry->fh( $fh );
+    }
+    
+    {
+	my $entry = $texts{temp};
+	my $filename = $entry->fn();
+	my $fh = IO::File->new( $filename, 'w' )
+	  or die "cannot open $filename: $ERRNO";
+	$entry->fh( $fh );
+    }
 }
+
+
+
+sub file_match
+{
+    my ( $orig, @compares ) = @_;
+    
+    my $found_match = 0;
+    
+    foreach my $file ( @compares )
+    {
+	return 1
+	  if compare( $file, $orig ) == 0;
+    }
+    
+    return 0;
+}
+
 
 
 1;

@@ -17,7 +17,7 @@ TEST
     
     $gnupg->encrypt( handles => $handles );
     
-    print $stdin @plaintext;
+    print $stdin @{ $texts{plain}->data() };
     close $stdin;
     wait;
     
@@ -36,9 +36,27 @@ TEST
     
     $gnupg->encrypt( handles => $handles );
     
-    print $stdin @plaintext;
+    print $stdin @{ $texts{plain}->data() };
     close $stdin;
     wait;
     
     return $CHILD_ERROR == 0;
-}
+};
+
+
+TEST
+{
+    reset_handles();
+    
+    $gnupg->options->clear_recipients();
+    $gnupg->options->clear_meta_recipients_keys();
+    $gnupg->options->push_recipients( '0x2E854A6B' );
+    
+    $handles->stdin( $texts{plain}->fh() );
+    $handles->options( 'stdin' )->{direct} = 1;
+    $gnupg->encrypt( handles => $handles );
+    
+    wait;
+    
+    return $CHILD_ERROR == 0;
+};

@@ -1,3 +1,23 @@
+Noteworthy changes in 0.10
+-----------------------------------------------------------------
+
+    *	GnuPG::Interface should work fine with the recently-
+	released GnuPG 1.0.2.
+
+    *	GnuPG::Handles objects can now handle reading
+	or writing directly from already-opened filehandles.
+	This can allow a more 'natural' approach to
+	having GnuPG read and write directly to files,
+	with the exeption being that the user has to
+	open these files beforehand.
+
+    *	Documentation created to describe the new accessing
+	of open filehandle behaviour, and a FAQ started
+	in GnuPG::Interface's docs.
+
+    *	Major code cleanup and other small docs cleanup.
+
+
 Noteworthy changes in 0.09
 -----------------------------------------------------------------
 

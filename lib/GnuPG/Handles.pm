@@ -17,16 +17,36 @@
 #  along with this program; if not, visit the following URL:
 #  http://www.gnu.org
 #
-#  $Id: Handles.pm,v 1.2 2000/04/20 14:30:28 ftobin Exp $
+#  $Id: Handles.pm,v 1.5 2000/07/12 08:21:21 ftobin Exp $
 #
 
 
 package GnuPG::Handles;
 
 use strict;
+
+use constant HANDLES => qw( stdin stdout stderr
+			    status logger passphrase
+			    command
+			  );
+
 use Class::MethodMaker
-  get_set       => [ qw( stdin stdout stderr status logger passphrase ) ],
-  new_hash_init => [ qw( new hash_init ) ];
+  get_set       => [ HANDLES ],
+  hash          => [ qw( options ) ],
+  new_with_init => 'new',
+  new_hash_init => 'hash_init';
+
+
+sub init
+{
+    my ( $self, %args ) = @_;
+    # This is done for the user's convenience so that they don't
+    # have to worry about undefined hashrefs
+    foreach my $handle ( HANDLES ) { $self->options( $handle, {} ) }
+    $self->hash_init( %args );
+}
+
+
 
 1;
 
@@ -39,9 +59,11 @@ GnuPG::Handles - GnuPG handles bundle
 
   use IO::Handle;
   my ( $stdin, $stdout, $stderr,
-       $status_fh, $logger_fh, $passphrase_fh )
+       $status_fh, $logger_fh, $passphrase_fh,
+     )
     = ( IO::Handle->new(), IO::Handle->new(), IO::Handle->new(),
-        IO::Handle->new(), IO::Handle->new(), IO::Handle->new() );
+        IO::Handle->new(), IO::Handle->new(), IO::Handle->new(),
+      );
  
   my $handles = GnuPG::Handle->new
     ( stdin      => $stdin,
@@ -49,7 +71,8 @@ GnuPG::Handles - GnuPG handles bundle
       stderr     => $stderr,
       status     => $status_fh,
       logger     => $logger_fh,
-      passphrase => $passphrase_fh );
+      passphrase => $passphrase_fh,
+    );
 
 =head1 DESCRIPTION
 
@@ -89,38 +112,74 @@ Please read there for more information.
 
 =item stdin
 
-This handle is generally connected to the standard input of
-a GnuPG process.
+This handle is connected to the standard input of a GnuPG process.
 
 =item stdout
 
-This handle is generally connected to the standard output of
-a GnuPG process.
+This handle is connected to the standard output of a GnuPG process.
 
 =item stderr
 
-This handle is generally connected to the standard error of
-a GnuPG process.
+This handle is connected to the standard error of a GnuPG process.
 
 =item status
 
-This handle is generally connected to the status output handle of
-a GnuPG process.
+This handle is connected to the status output handle of a GnuPG process.
 
 =item logger
 
-This handle is generally connected to the logger output handle of
-a GnuPG process.
+This handle is connected to the logger output handle of a GnuPG process.
 
 =item passphrase
 
-This handle is generally connected to the passphrase input handle of
-a GnuPG process.
+This handle is connected to the passphrase input handle of a GnuPG process.
+
+=item command
+
+This handle is connected to the command input handle of a GnuPG process.
+
+=item options
+
+This is a hash of hashrefs of settings pertaining to the handles
+in this object.  The outer-level hash is keyed by the names of the
+handle the setting is for, while the inner is keyed by the setting
+being referenced.  For example, to set the setting C<direct> to true
+for the filehandle C<stdin>, the following code will do:
+
+    # assuming $handles is an already-created
+    # GnuPG::Handles object, this sets all
+    # options for the filehandle stdin in one blow,
+    # clearing out all others
+    $handles->options( 'stdin', { direct => 1 } );
+
+    # this is useful to just make one change
+    # to the set of options for a handle
+    $handles->options( 'stdin' )->{direct} = 1;
+
+    # and to get the setting...
+    $setting = $handles->options( 'stdin' )->{direct};
+
+    # and to clear the settings for stdin
+    $handles->options( 'stdin', {} );
+
+The currently-used settings are as follows:
+
+=over 4
+
+=item direct
+
+If the setting C<direct> is true for a handle, the GnuPG
+process spawned will access the handle directly.  This is useful for
+having the GnuPG process read or write directly to or from
+an already-opened file.
+
+=back
 
 =back
 
 =head1 SEE ALSO
 
-See also L<GnuPG::Interface> and L<Class::MethodMaker>.
+L<GnuPG::Interface>,
+L<Class::MethodMaker>
 
 =cut

@@ -17,7 +17,7 @@
 #  along with this program; if not, visit the following URL:
 #  http://www.gnu.org
 #
-#  $Id: Options.pm,v 1.6 2000/06/11 02:07:11 ftobin Exp $
+#  $Id: Options.pm,v 1.8 2000/07/12 07:43:46 ftobin Exp $
 #
 
 package GnuPG::Options;
@@ -44,6 +44,7 @@ use constant SCALARS => qw( homedir
 			    default_key
 			    comment
 			    status_fd       logger_fd       passphrase_fd
+			    command_fd
 			    compress_algo
 			    options
 			    
@@ -136,6 +137,8 @@ sub get_option_args
       if defined $self->logger_fd();
     push @args, '--passphrase-fd',   $self->passphrase_fd()
       if defined $self->passphrase_fd();
+    push @args, '--command-fd',   $self->command_fd()
+      if defined $self->command_fd();
     
     push @args, map { ( '--recipient', $_ ) }  $self->recipients();
     push @args, map { ( '--encrypt-to', $_ ) } $self->encrypt_to();
@@ -346,6 +349,7 @@ Useful to pass an argument not yet covered in this package.
 
 =head1 SEE ALSO
 
-See also L<GnuPG::Interface> and L<Class::MethodMaker>.
+L<GnuPG::Interface>,
+L<Class::MethodMaker>
 
 =cut

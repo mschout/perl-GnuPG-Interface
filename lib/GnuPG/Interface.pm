@@ -17,13 +17,12 @@
 #  along with this program; if not, visit the following URL:
 #  http://www.gnu.org
 #
-#  $Id: Interface.pm,v 1.13 2000/06/26 00:21:44 ftobin Exp $
+#  $Id: Interface.pm,v 1.22 2000/07/13 06:36:46 ftobin Exp $
 #
 
 package GnuPG::Interface;
 
 use strict;
-no strict 'refs';
 use English;
 use Carp;
 use Symbol;
@@ -31,6 +30,7 @@ use Fcntl;
 use vars qw( $VERSION @ISA );
 use Fatal qw( open close pipe fcntl );
 use AutoLoader;
+use Class::Struct;
 
 push @ISA, 'AutoLoader';
 
@@ -44,10 +44,7 @@ use GnuPG::Fingerprint;
 use GnuPG::UserId; 
 use GnuPG::Signature;
 
-$VERSION = '0.09';
-
-$OUTPUT_AUTOFLUSH = 1;
-
+$VERSION = '0.10';
 
 use Class::MethodMaker
   get_set         => [ qw( gnupg_call  passphrase ) ],
@@ -66,6 +63,13 @@ sub init( $% )
 }
 
 
+struct ( fh_setup => { parent_end       => '$', child_end      => '$',
+		       direct           => '$', is_std         => '$',
+		       parent_is_source => '$', name_shows_dup => '$',
+		     }
+       );
+
+1;
 
 #################################################################
 # real worker functions
@@ -78,11 +82,11 @@ sub wrap_call( $% )
     my ( $self, %args ) = @_;
     
     my $handles = $args{handles}
-    or croak "error: no handles defined";
+    or croak 'error: no handles defined';
     
-    $handles->stdin(  "<&STDIN"  ) unless $handles->stdin();
-    $handles->stdout( ">&STDOUT" ) unless $handles->stdout();
-    $handles->stderr( ">&STDERR" ) unless $handles->stderr();
+    $handles->stdin(  '<&STDIN'  ) unless $handles->stdin();
+    $handles->stdout( '>&STDOUT' ) unless $handles->stdout();
+    $handles->stderr( '>&STDERR' ) unless $handles->stderr();
     
     # so call me sexist; English just doen't cope well
     my $needs_passphrase_handled_for_him =
@@ -119,10 +123,10 @@ sub fork_attach_exec( $% )
 {
     my ( $self, %args ) = @_;
     
-    my $handles = $args{handles} or croak "no handles passed";
+    my $handles = $args{handles} or croak 'no handles passed';
     
     my @gnupg_commands = $args{gnupg_commands}
-    ? @{ $args{gnupg_commands} } : () or croak "no gnupg command passed";
+    ? @{ $args{gnupg_commands} } : () or croak 'no gnupg command passed';
     
     my @gnupg_command_args = ();
     if ( ref $args{gnupg_command_args} )
@@ -134,48 +138,72 @@ sub fork_attach_exec( $% )
 	@gnupg_command_args = ( $args{gnupg_command_args} );
     }
     
+    my %fhs;
+    foreach my $fh_name ( qw( stdin stdout stderr status
+			      logger passphrase command
+			    )
+			)
+    {
+	my $fh = $handles->$fh_name() or next;
+	$fhs{$fh_name} = fh_setup->new();
+	$fhs{$fh_name}->parent_end( $fh );
+    }
     
-    my $parent_write      = $handles->stdin();
-    my $parent_read       = $handles->stdout();
-    my $parent_err        = $handles->stderr();
-    my $parent_status     = $handles->status();
-    my $parent_logger     = $handles->logger();
-    my $parent_passphrase = $handles->passphrase();
+    foreach my $fh_name ( qw( stdin stdout stderr ) )
+    {
+	$fhs{$fh_name}->is_std( 1 );
+    }
+    
+    foreach my $fh_name ( qw( stdin passphrase command ) )
+    {
+	my $entry = $fhs{$fh_name} or next;
+	$entry->parent_is_source( 1 );
+    }
     
     # Below is code derived heavily from
     # Marc Horowitz's IPC::Open3, a base Perl module
     
-    # the following dupped_* variables are booleans
-    my $dupped_parent_write      = ( $parent_write      =~ s/^[<>]&// );
-    my $dupped_parent_read       = ( $parent_read       =~ s/^[<>]&// );
-    my $dupped_parent_err        = ( $parent_err        =~ s/^[<>]&// );
+    foreach my $fh_name ( keys %fhs )
+    {
+	my $entry = $fhs{$fh_name};
+	
+	my $parent_end = $entry->parent_end();
+	my $name_shows_dup = ( $parent_end =~ s/^[<>]&// );
+	$entry->parent_end( $parent_end );
+	
+	$entry->name_shows_dup( $name_shows_dup );
+	
+	$entry->direct( $name_shows_dup
+			|| $handles->options( $fh_name )->{direct}
+			|| 0
+		      );
+    }
     
-    my $dupped_parent_status     = ( $parent_status     =~ s/^[<>]&// )
-      if $parent_status;
-    my $dupped_parent_logger     = ( $parent_logger     =~ s/^[<>]&// )
-      if $parent_logger;
-    my $dupped_parent_passphrase = ( $parent_passphrase =~ s/^[<>]&// )
-      if $parent_passphrase;
+    foreach my $fh_name ( keys %fhs )
+    {
+	$fhs{$fh_name}->child_end( gensym );
+    }
     
-    my $child_read       = gensym;
-    my $child_write      = gensym;
-    my $child_err        = gensym;
-    my $child_status     = gensym if $parent_status;
-    my $child_logger     = gensym if $parent_logger;
-    my $child_passphrase = gensym if $parent_passphrase;
-    
-    pipe $child_read,       $parent_write      unless $dupped_parent_write;
-    pipe $parent_read,      $child_write       unless $dupped_parent_read;
-    pipe $parent_err,       $child_err         unless $dupped_parent_err;
-    
-    pipe $parent_status,    $child_status
-      if $parent_status     and not $dupped_parent_status;
-    
-    pipe $parent_logger,    $child_logger
-      if $parent_logger     and not $dupped_parent_logger;
-    
-    pipe $child_passphrase, $parent_passphrase
-      if $parent_passphrase and not  $dupped_parent_passphrase;
+    foreach my $fh_name ( keys %fhs )
+    {
+	my $entry = $fhs{$fh_name};
+	next if $entry->direct();
+	
+	my $reader_end;
+	my $writer_end;
+	if ( $entry->parent_is_source() )
+	{
+	    $reader_end = $entry->child_end();
+	    $writer_end = $entry->parent_end();
+	}
+	else
+	{
+	    $reader_end = $entry->parent_end();
+	    $writer_end = $entry->child_end();
+	}
+	
+	pipe $reader_end, $writer_end;
+    }
     
     my $pid = fork;
     
@@ -183,115 +211,144 @@ sub fork_attach_exec( $% )
     
     if ( $pid == 0 )		# child
     {
+	no strict 'refs';
+	
+	# these are for safety later to help lessen autovifying,
+	# speed things up, and make the code smaller
+	my $stdin       = $fhs{stdin};
+	my $stdout      = $fhs{stdout};
+	my $stderr      = $fhs{stderr};
+	
 	# If she wants to dup the kid's stderr onto her stdout I need to
 	# save a copy of her stdout before I put something else there.
-	if ( $parent_read ne $parent_err
-	     and $dupped_parent_err
-	     and my_fileno( $parent_err ) == my_fileno( \*STDOUT ) )
+	if ( $stdout->parent_end() ne $stderr->parent_end()
+	     and $stderr->direct()
+	     and my_fileno( $stderr->parent_end() ) == my_fileno( \*STDOUT ) )
 	{
 	    my $tmp = gensym;
-	    open $tmp, ">&$parent_err";
-	    $parent_err = $tmp;
+	    open $tmp, '>&' . my_fileno( $stderr->parent_end() );
+	    $stderr->parent_end( $tmp );
 	}
 	
 	
-	if ( $dupped_parent_write )
+	if ( $stdin->direct() )
 	{
-	    open STDIN, "<&$parent_write"
-	      unless my_fileno( \*STDIN ) == my_fileno( $parent_write );
+	    open STDIN, '<&' . my_fileno( $stdin->parent_end() )
+	      unless
+		my_fileno( \*STDIN ) == my_fileno( $stdin->parent_end() );
 	}
 	else
 	{
-	    close $parent_write;
-	    open STDIN, '<&=' . my_fileno( $child_read );
+	    close $stdin->parent_end();
+	    open STDIN, '<&=' . my_fileno( $stdin->child_end() );
 	}
 	
-	if ( $dupped_parent_read )
+	
+	if ( $stdout->direct() )
 	{
-	    open STDOUT, ">&$parent_read"
-	      unless my_fileno( \*STDOUT ) == my_fileno( $parent_read );
+	    open STDOUT, '>&' . my_fileno( $stdout->parent_end() )
+	      unless
+		my_fileno( \*STDOUT ) == my_fileno( $stdout->parent_end() );
 	}
 	else
 	{
-	    close $parent_read;
-	    open STDOUT, ">&=" . my_fileno( $child_write );
+	    close $stdout->parent_end();
+	    open STDOUT, '>&=' . my_fileno( $stdout->child_end() );
 	}
 	
 	
-	if ( $parent_read ne $parent_err )
+	if ( $stdout->parent_end() ne $stderr->parent_end() )
 	{
 	    # I have to use a fileno here because in this one case
 	    # I'm doing a dup but the filehandle might be a reference
 	    # (from the special case above).
-	    if ( $dupped_parent_err )
+	    if ( $stderr->direct() )
 	    {
-		open STDERR, ">&" . my_fileno $parent_err
-		  unless my_fileno( \*STDERR ) == my_fileno( $parent_err );
+		open STDERR, '>&' . my_fileno( $stderr->parent_end() )
+		  unless
+		    my_fileno( \*STDERR )
+		      == my_fileno( $stderr->parent_end() );
 	    }
 	    else
 	    {
-		close $parent_err;
-		open STDERR, ">&" . my_fileno( $child_err );
+		close $stderr->parent_end();
+		open STDERR, '>&=' . my_fileno( $stderr->child_end() );
 	    }
 	}
 	else
 	{
-	    open STDERR, ">&STDOUT"
+	    open STDERR, '>&STDOUT'
 	      unless my_fileno( \*STDERR ) == my_fileno( \*STDOUT );
 	}
 	
+	foreach my $fh_name ( keys %fhs )
+	{
+	    my $entry = $fhs{$fh_name};
+	    next if $entry->is_std();
+	    
+	    my $parent_end = $entry->parent_end();
+	    my $child_end  = $entry->child_end();
+	    
+	    if ( $entry->direct() )
+	    {
+		if ( $entry->name_shows_dup() )
+		{
+		    my $open_prefix = $entry->parent_is_source() ? '<&' : '>&';
+		    open $child_end, $open_prefix . $parent_end;
+		}
+		else
+		{
+		    $child_end = $parent_end;
+		    $entry->child_end( $child_end );
+		}
+	    }
+	    else
+	    {
+		close $parent_end;
+	    }
+	    
+	    # we want these fh's to stay open after the exec
+	    fcntl $child_end, F_SETFD, 0;
+	    
+	    # now set the options for the call to GnuPG
+	    my $fileno = my_fileno( $child_end );
+	    my $option = $fh_name . '_fd';
+	    $self->options->$option( $fileno );
+	}
 	
-	close $parent_status
-	  if $parent_status     and not $dupped_parent_status;
-	close $parent_logger
-	  if $parent_logger     and not $dupped_parent_logger;
-	close $parent_passphrase
-	  if $parent_passphrase and not $dupped_parent_passphrase;
-	
-	
-	# we want these fh's to stay open after the exec
-	fcntl $child_status,     F_SETFD, 0 if $parent_status;
-	fcntl $child_logger,     F_SETFD, 0 if $parent_logger;
-	fcntl $child_passphrase, F_SETFD, 0 if $parent_passphrase;
-	
-	
-	$self->options->status_fd( my_fileno( $child_status ) )
-	  if $parent_status;
-	
-	$self->options->logger_fd( my_fileno( $child_logger ) )
-	  if $parent_logger;
-	
-	$self->options->passphrase_fd( my_fileno( $child_passphrase ) )
-	  if $parent_passphrase;
 	
 	my @command = ( $self->gnupg_call(), $self->options->get_args(),
-			@gnupg_commands,    @gnupg_command_args );
+			@gnupg_commands,     @gnupg_command_args );
 	
 	exec @command or die "exec() error: $ERRNO";
     }
     
     # parent
-    close $child_read       unless $dupped_parent_write;
-    close $child_write      unless $dupped_parent_read;
-    close $child_err        unless $dupped_parent_err;
     
-    close $child_status
-      if $parent_status     and not $dupped_parent_status;
-    close $child_logger
-      if $parent_logger     and not $dupped_parent_logger;
-    close $child_passphrase
-      if $parent_passphrase and not $dupped_parent_passphrase;
+    # close the child end of any pipes (non-direct stuff)
+    foreach my $fh_name ( keys %fhs )
+    {
+	my $entry = $fhs{$fh_name};
+	close $entry->child_end() unless $entry->direct();
+    }
     
-    # close any writings handles if they were a dup
-    close $parent_write      if $dupped_parent_write;
     
-    close $parent_passphrase
-      if $parent_passphrase and $dupped_parent_passphrase;
-    
-    # unbuffer pipes
-    select( ( select( $parent_write ),      $OUTPUT_AUTOFLUSH = 1 )[0] );
-    select( ( select( $parent_passphrase ), $OUTPUT_AUTOFLUSH = 1 )[0] )
-      if $parent_passphrase;
+    foreach my $fh_name ( keys %fhs )
+    {
+	my $entry = $fhs{$fh_name};
+	next unless $entry->parent_is_source();
+	
+	my $parent_end = $entry->parent_end();
+	
+	# close any writing handles if they were a dup
+	#any real reason for this?  It bombs if we're doing
+	#the automagic >& stuff.
+	#close $parent_end if $entry->direct();
+	
+	# unbuffer pipes
+	select( ( select( $parent_end ),  $OUTPUT_AUTOFLUSH = 1 )[0] )
+	  if $parent_end;
+    }
     
     return $pid;
 }
@@ -299,9 +356,13 @@ sub fork_attach_exec( $% )
 
 sub my_fileno
 {
+    no strict 'refs';
     my ( $fh ) = @_;
+    die "fh is undefined" unless defined $fh;
     return $1 if $fh =~ /^=?(\d+)$/;   # is it a fd in itself?
-    return fileno $fh;
+    my $fileno = fileno $fh;
+    die "error determining fileno for $fh: $ERRNO" unless defined $fileno;
+    return $fileno;
 }
 
 
@@ -360,10 +421,12 @@ sub get_keys
     my $stdout = gensym;
     
     my $handles = GnuPG::Handles->new( stdin  => $stdin,
-				       stdout => $stdout );
+				       stdout => $stdout,
+				     );
     
     my $pid = $self->wrap_call( handles => $handles,
-				%args );
+				%args,
+			      );
     
     my @returned_keys;
     my $current_key;
@@ -823,12 +886,16 @@ These methods each correspond directly to or are very similar
 to a GnuPG command described in L<gpg>.  Each of these methods
 takes a hash, which currently must contain a key of B<handles>
 which has the value of a GnuPG::Handles object.
-Another optional key is B<gnupg_command_args> should have the value of an
+Another optional key is B<gnupg_command_args> which should have the value of an
 array reference; these arguments will be passed to GnuPG as command arguments.
 These command arguments are used for such things as determining the keys to
 list in the B<export_keys> method.  I<Please note that GnuPG command arguments
 are not the same as GnuPG options>.  To understand what are options and
 what are command arguments please read L<gpg/"COMMANDS"> and L<gpg/"OPTIONS">.
+
+Each of these calls returns the PID for the resulting GnuPG process.
+One can use this PID in a C<waitpid> call instead of a C<wait> call
+if more precise process reaping is needed.
 
 These methods will attach the handles specified in the B<handles> object
 to the running GnuPG object, so that bidirectional communication
@@ -841,14 +908,21 @@ B<passphrase-fd> respectively.
 This tying of handles of similar to the process
 done in I<IPC::Open3>.
 
-Note that if you want to attach an already-exiting, opened handle,
-such as one created from opening a file, set the respective
-handle in the B<handles> object to be duped.  This is done
-setting the handle to be a string, beginning with '>&' (or some
-similar opening mode), followed by the filehandle name, or,
-of it is a symbol or object handle, the file descriptor
-number of the object/symbol.  You can use C<fcntl> to determine
-the file descriptor for a handle.
+If you want the GnuPG process read or write directly to an already-opened
+filehandle, you cannot do this via the normal I<IPC::Open3> mechanisms.
+In order to accomplish this, set the appropriate B<handles> data member
+to the already-opened filehandle, and then set the option B<direct> to be true
+for that handle, as described in L<GnuPG::Handles/options>.  For example,
+to have GnuPG read from the file F<input.txt> and write to F<output.txt>,
+the following snippet may do:
+
+  my $infile  = IO::File->new( 'input.txt.' );
+  my $outfile = IO::File->new( 'output.txt' );
+  my $handles = GnuPG::Handles->new( stdin  => $infile,
+                                     stdout => $outfile,
+                                   );
+  $handles->options( 'stdin'  )->{direct} = 1;
+  $handles->options( 'stdout' )->{direct} = 1;
 
 If any handle in the B<handles> object is not defined, GnuPG's input, output,
 and standard error will be tied to the running program's standard error,
@@ -970,10 +1044,13 @@ The following setup can be done before any of the following examples:
   # This time we'll catch the standard error for our perusing
   my ( $input, $output, $error ) = ( IO::Handle->new(),
                                      IO::Handle->new(),
-                                     IO::Handle->new() );
+                                     IO::Handle->new(),
+				   );
+
   my $handles = GnupG::Handles->new( stdin    => $input,
                                      stdout   => $output,
-                                     stderr   => $error,  );
+                                     stderr   => $error,
+				   );
 
   # indicate our pasphrase through the
   # convience method
@@ -1007,12 +1084,15 @@ The following setup can be done before any of the following examples:
         IO::Handle->new(),
         IO::Handle->new(),
         IO::Handle->new(),
-        IO::Handle->new() );
-  my $handles = GnupG::Handles->new( stdin    => $input,
-                                      stdout   => $output,
-                                      stderr   => $error,
-                                      passphrase => $passphrase_fh,
-                                      status     => $status_fh );
+        IO::Handle->new(),
+      );
+
+  my $handles = GnupG::Handles->new( stdin      => $input,
+				     stdout     => $output,
+				     stderr     => $error,
+				     passphrase => $passphrase_fh,
+				     status     => $status_fh,
+				   );
 
   # this time we'll also demonstrate decrypting
   # a file written to disk
@@ -1070,6 +1150,42 @@ The following setup can be done before any of the following examples:
   # no wait is required this time; it's handled internally
   # since the entire call is encapsulated
 
+
+=head1 FAQ
+
+=over 4
+
+=item How do I get GnuPG::Interface to read/write directly from
+a filehandle?
+
+You need to set GnuPG::Handles B<direct> option to be true for the
+filehandles in concern.  See L<GnuPG::Handles/options> and
+L<"Object Methods which use a GnuPG::Handles Object"> for more
+information.
+
+=item Why do you make it so difficult to get GnuPG to write/read
+from a filehandle?  In the shell, I can just call GnuPG
+with the --outfile option!
+
+There are lots of issues when trying to tell GnuPG to read/write
+directly from a file, such as if the file isn't there, or
+there is a file, and you want to write over it!  What do you
+want to happen then?  Having the user of this module handle
+these questions beforehand by opening up filehandles to GnuPG
+lets the user know fully what is going to happen in these circumstances,
+and makes the module less error-prone.
+
+=item When having GnuPG process a large message, sometimes it just
+hanges there.
+
+Your problem may be due to buffering issues; when GnuPG reads/writes
+to B<non-direct> filehandles (those that are sent to filehandles
+which you read to from into memory, not that those access the disk),
+buffering issues can mess things up.  I recommend looking into
+L<GnuPG::Handles/options>.
+
+=back
+
 =head1 NOTES
 
 This package is the successor to PGP::GPG::MessageProcessor,
@@ -1093,9 +1209,13 @@ I don't know yet how well this modules handles parsing OpenPGP v3 keys.
 
 =head1 SEE ALSO
 
-See L<GnuPG::Options>, L<GnuPG::Handles>, L<GnuPG::PublicKey>,
-L<GnuPG::SecretKey>, L<gpg>, L<Class::MethodMaker>, and
-L<perlipc/"Bidirectional Communication with Another Process">.
+L<GnuPG::Options>,
+L<GnuPG::Handles>,
+L<GnuPG::PublicKey>,
+L<GnuPG::SecretKey>,
+L<gpg>,
+L<Class::MethodMaker>,
+L<perlipc/"Bidirectional Communication with Another Process">
 
 =head1 AUTHOR
 

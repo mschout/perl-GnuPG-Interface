@@ -7,6 +7,8 @@ use lib './t';
 use MyTest;
 use MyTestSpecific;
 
+my ( $key, $genkey );
+
 TEST
 {
     reset_handles();
@@ -15,9 +17,9 @@ TEST
     
     return 0 unless @returned_keys == 1;
     
-    my $key = shift @returned_keys;
+    $key = shift @returned_keys;
     
-    my $genkey = GnuPG::SecretKey->new
+    $genkey = GnuPG::SecretKey->new
       ( length                 => 1024,
 	algo_num               => 17,
 	hex_id                 => '53AE596EF950DA9C',
@@ -54,16 +56,25 @@ TEST
     $genkey->push_user_ids( $user_id1, $user_id2 );
     $genkey->push_subkeys( $subkey );
 
-    die 'top level fails comparison'
-      unless $key->rigorously_compare( $genkey );
-    
-    die 'fingerprint fails comparison'
-      unless $key->fingerprint->deeply_compare( $genkey->fingerprint );
-    
-    die 'subkeys fail comparison; this is a known issue with GnuPG 1.0.1e'
-      unless ( $key->subkeys )[0]->rigorously_compare( ( $genkey->subkeys )[0] );
-    
-    return $key->deeply_compare( $genkey );
+    $key->rigorously_compare( $genkey );
 };
 
-exit 0;
+
+TEST
+{
+    $key->fingerprint->deeply_compare( $genkey->fingerprint );
+};
+    
+
+TEST
+{
+    my $equal = ( $key->subkeys )[0]->rigorously_compare( ( $genkey->subkeys )[0] );
+    warn 'subkeys fail comparison; this is a known issue with recent development versions of GnuPG' unless $equal;
+    return $equal;
+};
+
+
+TEST
+{
+    $key->deeply_compare( $genkey );
+};

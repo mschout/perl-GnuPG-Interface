@@ -13,8 +13,22 @@ TEST
     
     $gnupg->sign( handles => $handles );
     
-    print $stdin @plaintext;
+    print $stdin @{ $texts{plain}->data() };
     close $stdin;
+    wait;
+    
+    return $CHILD_ERROR == 0;
+};
+
+
+TEST
+{
+    reset_handles();
+    
+    $handles->stdin( $texts{plain}->fh() );
+    $handles->options( 'stdin' )->{direct} = 1;
+    $gnupg->sign( handles => $handles );
+    
     wait;
     
     return $CHILD_ERROR == 0;

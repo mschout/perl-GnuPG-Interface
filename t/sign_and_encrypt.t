@@ -14,8 +14,22 @@ TEST
     $gnupg->options->push_recipients( '0x2E854A6B' );
     $gnupg->sign_and_encrypt( handles => $handles );
     
-    print $stdin @plaintext;
+    print $stdin @{ $texts{plain}->data() };
     close $stdin;
+    wait;
+    
+    return $CHILD_ERROR == 0;
+};
+
+
+TEST
+{
+    reset_handles();
+    
+    $handles->stdin( $texts{plain}->fh() );
+    $handles->options( 'stdin' )->{direct} = 1;
+    $gnupg->sign_and_encrypt( handles => $handles );
+    
     wait;
     
     return $CHILD_ERROR == 0;

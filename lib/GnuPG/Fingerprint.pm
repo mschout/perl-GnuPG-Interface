@@ -17,7 +17,7 @@
 #  along with this program; if not, visit the following URL:
 #  http://www.gnu.org
 #
-#  $Id: Fingerprint.pm,v 1.2 2000/04/20 14:30:28 ftobin Exp $
+#  $Id: Fingerprint.pm,v 1.3 2000/07/12 07:43:46 ftobin Exp $
 #
 
 package GnuPG::Fingerprint;
@@ -98,6 +98,7 @@ This is the hex value of the fingerprint that the object embodies.
 
 =head1 SEE ALSO
 
-See also L<GnuPG::Key> and L<Class::MethodMaker>.
+L<GnuPG::Key>,
+L<Class::MethodMaker>
 
 =cut

@@ -17,7 +17,7 @@
 #  along with this program; if not, visit the following URL:
 #  http://www.gnu.org
 #
-#  $Id: Key.pm,v 1.3 2000/06/18 07:33:16 ftobin Exp $
+#  $Id: Key.pm,v 1.5 2000/07/12 22:29:39 ftobin Exp $
 #
 
 package GnuPG::Key;
@@ -49,7 +49,10 @@ sub rigorously_compare
         $self->algo_num(),               $other->algo_num(),
         $self->hex_id(),                 $other->hex_id(),
 	$self->creation_date_string(),   $other->creation_date_string(),
-        $self->expiration_date_string(), $other->expiration_date_string(),
+        #this is taken out because GnuPG for some reason has decided
+	#to not make expiration date listings the same for subkeys
+	#in public-key mode and private-key mode
+	#$self->expiration_date_string(), $other->expiration_date_string(),
       );
     
     for ( my $i = 0; $i < @comparison_pairs; $i += 2 )
@@ -159,6 +162,7 @@ A GnuPG::Fingerprint object.
 
 =head1 SEE ALSO
 
-See also L<GnuPG::Fingerprint> and L<Class::MethodMaker>.
+L<GnuPG::Fingerprint>,
+L<Class::MethodMaker>
 
 =cut

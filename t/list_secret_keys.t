@@ -8,6 +8,8 @@ use lib './t';
 use MyTest;
 use MyTestSpecific;
 
+my $outfile;
+
 TEST
 {
     reset_handles();
@@ -15,7 +17,7 @@ TEST
     $gnupg->list_secret_keys( handles => $handles );
     close $stdin;
     
-    my $outfile = 'test/secret-keys/1.out';
+    $outfile = 'test/secret-keys/1.out';
     my $out = IO::File->new( "> $outfile" )
       or die "cannot open $outfile for writing: $ERRNO";
     $out->print( <$stdout> );
@@ -23,19 +25,15 @@ TEST
     $out->close();
     wait;
     
+    return $CHILD_ERROR == 0;
+};
+
+
+TEST
+{
     my @files_to_test = ( 'test/secret-keys/1.0.test' );
-    my $found_match = 0;
-    
-    foreach my $file ( @files_to_test )
-    {
-	if ( compare( $file, $outfile ) == 0 )
-	{
-	    $found_match = 1;
-	    last;
-	}
-    }
-    
-    return ( $CHILD_ERROR == 0 and $found_match );
+
+    return file_match( $outfile, @files_to_test );
 };
 
 
@@ -47,7 +45,7 @@ TEST
 			      gnupg_command_args => '0xF950DA9C' );
     close $stdin;
     
-    my $outfile = 'test/secret-keys/2.out';
+    $outfile = 'test/secret-keys/2.out';
     my $out = IO::File->new( "> $outfile" )
       or die "cannot open $outfile for writing: $ERRNO";
     $out->print( <$stdout> );
@@ -55,17 +53,41 @@ TEST
     $out->close();
     wait;
     
+    return $CHILD_ERROR == 0;
+    
+};
+
+
+TEST
+{
     my @files_to_test = ( 'test/secret-keys/2.0.test' );
-    my $found_match = 0;
     
-    foreach my $file ( @files_to_test )
-    {
-	if ( compare( $file, $outfile ) == 0 )
-	{
-	    $found_match = 1;
-	    last;
-	}
-    }
+    return file_match( $outfile, @files_to_test );
+};
+
+
+
+TEST
+{
+    reset_handles();
     
-    return ( $CHILD_ERROR == 0 and $found_match );
+    $handles->stdout( $texts{temp}->fh() );
+    $handles->options( 'stdout' )->{direct} = 1;
+    
+    $gnupg->list_secret_keys( handles            => $handles,
+			      gnupg_command_args => '0xF950DA9C' );
+    
+    wait;
+    
+    $outfile = $texts{temp}->fn();
+    
+    return $CHILD_ERROR == 0;
+};
+ 
+
+TEST
+{
+    my @files_to_test = ( 'test/secret-keys/2.0.test' );
+    
+    return file_match( $outfile, @files_to_test );
 };

@@ -17,7 +17,7 @@
 #  along with this program; if not, visit the following URL:
 #  http://www.gnu.org
 #
-#  $Id: SubKey.pm,v 1.2 2000/04/20 14:30:28 ftobin Exp $
+#  $Id: SubKey.pm,v 1.3 2000/07/12 07:43:46 ftobin Exp $
 #
 
 package GnuPG::SubKey;
@@ -102,6 +102,8 @@ signature on this key.
 
 =head1 SEE ALSO
 
-See also L<GnuPG::Key>, L<GnuPG::Signature>, and L<Class::MethodMaker>.
+L<GnuPG::Key>,
+L<GnuPG::Signature>,
+L<Class::MethodMaker>
 
 =cut

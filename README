@@ -14,7 +14,7 @@ make install
 This module depends on:
 
 	Perl 5.005
-	Class::MethodMaker 0.92	available from CPAN; http://www.cpan.org/
+	Class::MethodMaker 0.96	available from CPAN; http://www.cpan.org/
 	GnuPG			available from http://www.gnupg.org/
 
 
