@@ -54,12 +54,13 @@ TEST
     $genkey->push_user_ids( $user_id1, $user_id2 );
     $genkey->push_subkeys( $subkey );
 
-    die "no top level compare" unless $key->rigorously_compare( $genkey );
+    die 'top level fails comparison'
+      unless $key->rigorously_compare( $genkey );
     
-    die "no fingerprint"
+    die 'fingerprint fails comparison'
       unless $key->fingerprint->deeply_compare( $genkey->fingerprint );
     
-    die "no subkeys"
+    die 'subkeys fail comparison; this is a known issue with GnuPG 1.0.1e'
       unless ( $key->subkeys )[0]->rigorously_compare( ( $genkey->subkeys )[0] );
     
     return $key->deeply_compare( $genkey );

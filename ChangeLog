@@ -1,3 +1,70 @@
+2000-06-20 17:17  ftobin
+
+	* NEWS, lib/GnuPG/Interface.pm: ready for 0.08
+
+2000-06-18 21:10  ftobin
+
+	* README: 'make' should be a separate step from 'make test', as it
+	seems manifying doesn't happen during 'make test'.
+
+2000-06-18 20:25  ftobin
+
+	* NEWS, lib/GnuPG/Interface.pm: use AutoLoading now.
+
+2000-06-18 20:17  ftobin
+
+	* Makefile.PL: more fun simple changes
+
+2000-06-18 19:26  ftobin
+
+	* Makefile.PL: clarification
+
+2000-06-18 19:22  ftobin
+
+	* Makefile.PL: Need C::MM 0.96
+
+2000-06-18 04:57  ftobin
+
+	* MANIFEST: typo
+
+2000-06-18 02:53  ftobin
+
+	* t/get_secret_keys.t: oops, typo
+
+2000-06-18 02:47  ftobin
+
+	* MANIFEST, t/get_public_keys.t, t/get_secret_keys.t: MANIFEST
+	changed to reflect new 'test' directory little better information
+	on GnuPG creating errors in the test scripts due to GnuPG versions
+
+2000-06-18 02:35  ftobin
+
+	* test/: public-keys-sigs.1.txt, public-keys-sigs.2.txt,
+	public-keys.1.txt, public-keys.2.txt, secret-keys.1.txt,
+	secret-keys.2.txt, trustdb.gpg, public-keys/1.0.test,
+	public-keys/1.1.test, public-keys/2.0.test, public-keys/2.1.test,
+	public-keys-sigs/1.0.test, public-keys-sigs/1.1.test,
+	public-keys-sigs/2.0.test, public-keys-sigs/2.1.test,
+	secret-keys/1.0.test, secret-keys/2.0.test: file tree rearrangement
+
+2000-06-18 02:33  ftobin
+
+	* NEWS, lib/GnuPG/Key.pm, t/get_public_keys.t, t/get_secret_keys.t,
+	t/list_public_keys.t, t/list_secret_keys.t, t/list_sigs.t: Updates
+	so that tests work better with GnuPG 1.0.1e, or are knowledgeable
+	about errors with it.
+	
+	rearrangement of 'test' directory
+
+2000-06-11 04:36  ftobin
+
+	* Makefile.PL: bumped up C::MM requirements to 0.95 because of how
+	new methods changing.
+
+2000-06-10 21:07  ftobin
+
+	* lib/GnuPG/Options.pm: typo in pod
+
 2000-05-24 20:22  ftobin
 
 	* t/MyTestSpecific.pm: More about GnuPG::Options meta methods

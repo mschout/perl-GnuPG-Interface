@@ -32,7 +32,7 @@ WriteMakefile
     VERSION_FROM => File::Spec->catfile( $gnupg_base, 'Interface.pm' ),
     
     PREREQ_PM    => {
-		     'Class::MethodMaker' => .92,
+		     'Class::MethodMaker' => 0.96,
 		    },
     
     PM           => { %pm_install_hash },
@@ -40,6 +40,7 @@ WriteMakefile
     dist         => {
 		     COMPRESS => 'gzip',
 		     SUFFIX   => 'gz',
-		    }
+		    },
+    
   );
 

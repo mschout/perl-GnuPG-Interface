@@ -17,7 +17,7 @@
 #  along with this program; if not, visit the following URL:
 #  http://www.gnu.org
 #
-#  $Id: Options.pm,v 1.5 2000/05/25 01:20:32 ftobin Exp $
+#  $Id: Options.pm,v 1.6 2000/06/11 02:07:11 ftobin Exp $
 #
 
 package GnuPG::Options;
@@ -80,7 +80,7 @@ sub copy
 {
     my ( $self ) = @_;
     
-    my $new = __PACKAGE__->new();
+    my $new = (ref $self)->new();
     
     foreach my $field ( BOOLEANS, SCALARS, LISTS )
     {
@@ -346,6 +346,6 @@ Useful to pass an argument not yet covered in this package.
 
 =head1 SEE ALSO
 
-See also L<GnuPG::Interface and L<Class::MethodMaker>.
+See also L<GnuPG::Interface> and L<Class::MethodMaker>.
 
 =cut

@@ -1,3 +1,15 @@
+Noteworthy changes in 0.08
+-----------------------------------------------------------------
+
+    *	AutoLoader is now used; this may descrease
+	compile-time.
+
+    *	Changes so that testing on recent development versions
+	of GnuPG (namely 1.0.1e) works, or notably says
+	that the error is occuring because of GnuPG version
+	differences.
+
+
 Noteworthy changes in 0.07
 -----------------------------------------------------------------
 

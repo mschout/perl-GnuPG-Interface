@@ -17,7 +17,7 @@
 #  along with this program; if not, visit the following URL:
 #  http://www.gnu.org
 #
-#  $Id: Key.pm,v 1.2 2000/04/20 14:30:28 ftobin Exp $
+#  $Id: Key.pm,v 1.3 2000/06/18 07:33:16 ftobin Exp $
 #
 
 package GnuPG::Key;
@@ -54,6 +54,9 @@ sub rigorously_compare
     
     for ( my $i = 0; $i < @comparison_pairs; $i += 2 )
     {
+	return 0
+	  unless defined $comparison_pairs[$i]
+	    and defined $comparison_pairs[$i];
 	return 0 if $comparison_pairs[$i] ne $comparison_pairs[$i+1];
     }
     

@@ -17,7 +17,7 @@
 #  along with this program; if not, visit the following URL:
 #  http://www.gnu.org
 #
-#  $Id: Interface.pm,v 1.8 2000/05/25 01:21:33 ftobin Exp $
+#  $Id: Interface.pm,v 1.10 2000/06/20 22:17:36 ftobin Exp $
 #
 
 package GnuPG::Interface;
@@ -28,8 +28,11 @@ use English;
 use Carp;
 use Symbol;
 use Fcntl;
-use vars qw( $VERSION );
+use vars qw( $VERSION @ISA );
 use Fatal qw( open close pipe fcntl );
+use AutoLoader;
+
+push @ISA, 'AutoLoader';
 
 use GnuPG::Options;
 use GnuPG::Handles;
@@ -41,9 +44,7 @@ use GnuPG::Fingerprint;
 use GnuPG::UserId; 
 use GnuPG::Signature;
 
-$VERSION = '0.07';
-
-use constant DEBUG => 0;
+$VERSION = '0.08';
 
 $OUTPUT_AUTOFLUSH = 1;
 
@@ -67,380 +68,6 @@ sub init( $% )
 
 
 #################################################################
-
-sub get_public_keys ( $@ )
-{
-    my ( $self, @key_ids ) = @_;
-    
-    return $self->get_keys( gnupg_commands     => [  '--list-public-keys' ],
-			    gnupg_command_args => [ @key_ids ],
-			  );
-}
-
-
-
-sub get_secret_keys ( $@ )
-{
-    my ( $self, @key_ids ) = @_;
-    
-    return $self->get_keys( gnupg_commands     => [ '--list-secret-keys' ],
-			    gnupg_command_args => [ @key_ids ],
-			  );
-}
-
-
-
-sub get_public_keys_with_sigs ( $@ )
-{
-    my ( $self, @key_ids ) = @_;
-
-    return $self->get_keys( gnupg_commands     => [ '--list-sigs' ],
-			    gnupg_command_args => [ @key_ids ],
-			  );
-}
-
-
-
-sub get_keys
-{
-    my ( $self, %args ) = @_;
-    
-    my $saved_options = $self->options();
-    my $new_options   = $self->options->copy();
-    $self->options( $new_options );
-    $self->options->push_extra_args( '--with-colons',
-				     '--with-fingerprint',
-				     '--with-fingerprint',
-				   );
-    
-    my $stdin  = gensym;
-    my $stdout = gensym;
-    
-    my $handles = GnuPG::Handles->new( stdin  => $stdin,
-				       stdout => $stdout );
-    
-    my $pid = $self->wrap_call( handles => $handles,
-				%args );
-    
-    my @returned_keys;
-    my $current_key;
-    my $current_signed_item;
-    my $current_fingerprinted_key;
-    
-    while ( my $line = <$stdout> )
-    {
-	chomp $line;
-	my @fields = split ':', $line;
-	next unless @fields > 3;
-	
-	my $record_type = $fields[0];
-	
-	if ( $record_type eq 'pub' or $record_type eq 'sec' )
-	{
-	    push @returned_keys, $current_key
-	      if $current_key;
-	    
-	    my ( $user_id_validity, $key_length, $algo_num, $hex_key_id,
-		 $creation_date_string, $expiration_date_string,
-		 $local_id, $owner_trust, $user_id_string )
-	      = @fields[1..$#fields];
-	    
-	    $current_key = $current_fingerprinted_key
-	      = $record_type eq 'pub'
-		? GnuPG::PublicKey->new()
-		  : GnuPG::SecretKey->new();
-	    
-	    $current_key->hash_init
-	      ( length                 => $key_length,
-		algo_num               => $algo_num,
-		hex_id                 => $hex_key_id,
-		local_id               => $local_id,
-		owner_trust            => $owner_trust,
-		creation_date_string   => $creation_date_string,
-		expiration_date_string => $expiration_date_string,
-	      );
-	    
-	    $current_signed_item = GnuPG::UserId->new
-	      ( validity        => $user_id_validity,
-		user_id_string  => $user_id_string,
-	      );
-	    
-	    $current_key->push_user_ids( $current_signed_item );
-	}
-	elsif ( $record_type eq 'fpr' )
-	{
-	    my $fingerprint = $fields[9];
-	    $current_fingerprinted_key->fingerprint->hex_data( $fingerprint );
-	}
-	elsif ( $record_type eq 'sig' )
-	{
-	    my ( $algo_num, $hex_key_id,
-		 $signature_date_string, $user_id_string )
-	      = @fields[3..5,9];
-	    
-	    my $signature = GnuPG::Signature->new
-	      ( algo_num              => $algo_num,
-		hex_id                => $hex_key_id,
-		date_string           => $signature_date_string,
-		user_id_string        => $user_id_string
-	      );
-	    
-	    if ( $current_signed_item->isa( 'GnuPG::UserId' ) )
-	    {
-		$current_signed_item->push_signatures( $signature );
-	    }
-	    elsif ( $current_signed_item->isa( 'GnuPG::SubKey' ) )
-	    {
-		$current_signed_item->signature( $signature );
-	    }
-	    else
-	    {
-		warn "do not know how to handle signature line: $line\n";
-	    }
-	}
-	elsif ( $record_type eq 'uid' )
-	{
-	    my ( $validity, $user_id_string ) = @fields[1,9];
-	    
-	    $current_signed_item = GnuPG::UserId->new
-	      ( validity       => $validity,
-		user_id_string => $user_id_string,
-	      );
-	    
-	    $current_key->push_user_ids( $current_signed_item );
-	}
-	elsif ( $record_type eq 'sub' or $record_type eq 'ssb' )
-	{
-	    my ( $validity, $key_length, $algo_num, $hex_id,
-		 $creation_date_string, $expiration_date_string,
-		 $local_id )
-	      = @fields[1..7];
-	    
-	    $current_signed_item = $current_fingerprinted_key
-	      = GnuPG::SubKey->new
-		( validity               => $validity,
-		  length                 => $key_length,
-		  algo_num               => $algo_num,
-		  hex_id                 => $hex_id,
-		  creation_date_string   => $creation_date_string,
-		  expiration_date_string => $expiration_date_string,
-		  local_id               => $local_id,
-		);
-	    
-	    $current_key->push_subkeys( $current_signed_item );
-	}
-	else
-	{
-	    warn "unknown record type $record_type"; 
-	}
-    }
-    
-    waitpid $pid, 0;
-    
-    push @returned_keys, $current_key
-      if $current_key;
-    
-    $self->options( $saved_options );
-    
-    return @returned_keys;
-}
-
-
-
-sub list_public_keys
-{
-    my ( $self, %args ) = @_;
-    return $self->wrap_call( %args,
-			     gnupg_commands => [ '--list-public-keys' ],
-			   );
-}
-
-
-sub list_sigs
-{
-    my ( $self, %args ) = @_;
-    return $self->wrap_call( %args,
-			     gnupg_commands => [ '--list-sigs' ],
-			   );
-}
-
-
-
-sub list_secret_keys
-{
-    my ( $self, %args ) = @_;
-    return $self->wrap_call( %args,
-			     gnupg_commands => [ '--list-secret-keys' ],
-			   );
-}
-
-
-
-sub encrypt( $% )
-{
-    my ( $self, %args ) = @_;
-    return $self->wrap_call( %args,
-			     gnupg_commands => [ '--encrypt' ] );
-}
-
-
-
-sub encrypt_symmetrically( $% )
-{
-    my ( $self, %args ) = @_;
-    return $self->wrap_call( %args,
-			     gnupg_commands => [ '--symmetric' ] );
-}
-
-
-
-sub sign( $% )
-{
-    my ( $self, %args ) = @_;
-    return $self->wrap_call( %args,
-			     gnupg_commands => [ '--sign' ] );
-}
-
-
-
-sub clearsign( $% )
-{
-    my ( $self, %args ) = @_;
-    die "humph" unless keys %args;
-    return $self->wrap_call( handles => $args{handles},
-			     gnupg_commands => [ '--clearsign' ] );
-}
-
-
-sub detach_sign( $% )
-{
-    my ( $self, %args ) = @_;
-    return $self->wrap_call( %args,
-			     gnupg_commands => [ '--detach-sign' ] );
-}
-
-
-
-sub sign_and_encrypt( $% )
-{
-    my ( $self, %args ) = @_;
-    return $self->wrap_call( %args,
-			     gnupg_commands => [ '--sign',
-						 '--encrypt' ] );
-}
-
-
-
-sub decrypt( $% )
-{
-    my ( $self, %args ) = @_;
-    return $self->wrap_call( %args,
-			     gnupg_commands => [ '--decrypt' ] );
-}
-
-
-
-sub verify( $% )
-{
-    my ( $self, %args ) = @_;
-    return $self->wrap_call( %args,
-			     gnupg_commands => [ '--verify' ] );
-}
-
-
-
-sub import_keys( $% )
-{
-    my ( $self, %args ) = @_;
-    return $self->wrap_call( %args,
-			     gnupg_commands      => [ '--import' ],
-			     gnupg_command_args  => [ '-' ] );
-}
-
-
-
-sub export_keys( $% )
-{
-    my ( $self, %args ) = @_;
-    return $self->wrap_call( %args,
-			     gnupg_commands => [ '--export' ] );
-}
-
-
-sub recv_keys( $% )
-{
-    my ( $self, %args ) = @_;
-    return $self->wrap_call( %args,
-			     gnupg_commands => [ '--recv-keys' ] );
-}
-
-
-
-sub send_keys( $% )
-{
-    my ( $self, %args ) = @_;
-    return $self->wrap_call( %args,
-			     gnupg_commands => [ '--send-keys' ] );
-}
-
-
-
-###############################################################
-
-
-sub test_default_key_passphrase()
-{
-    my ( $self ) = @_;
-    
-    # We can't do something like let the user pass
-    # in a passphrase handle because we don't exist
-    # anymore after the user runs off with the
-    # attachments
-    croak 'No passphrase defined to test!'
-      unless defined $self->passphrase();
-    
-    my $stdin       = gensym;
-    my $stdout      = gensym;
-    my $stderr      = gensym;
-    my $status      = gensym;
-    
-    my $handles = GnuPG::Handles->new
-      ( stdin    => $stdin,
-	stdout   => $stdout,
-	stderr   => $stderr,
-	status   => $status );
-    
-    # save this setting since we need to be in non-interactive mode
-    my $saved_meta_interactive_option = $self->options->meta_interactive();
-    $self->options->clear_meta_interactive();
-    
-    my $pid = $self->sign( handles => $handles );
-    
-    close $stdin;
-    
-    # restore this setting to its original setting
-    $self->options->meta_interactive( $saved_meta_interactive_option );
-    
-    # all we realy want to check is the status fh
-    while ( <$status> )
-    {
-	if ( /^\[GNUPG:\]\s*GOOD_PASSPHRASE/ )
-	{
-	    waitpid $pid, 0;
-	    return 1;
-	}
-    }
-    
-    # If we didn't catch the regexp above, we'll assume
-    # that the passphrase was incorrect
-    waitpid $pid, 0;
-    return 0;
-}
-
-
-
-
-########################################################
 # real worker functions
 
 
@@ -671,10 +298,384 @@ sub fork_attach_exec( $% )
 }
 
 
+__END__
+
+
+###################################################################
+
+
+sub get_public_keys ( $@ )
+{
+    my ( $self, @key_ids ) = @_;
+    
+    return $self->get_keys( gnupg_commands     => [  '--list-public-keys' ],
+			    gnupg_command_args => [ @key_ids ],
+			  );
+}
+
+
+
+sub get_secret_keys ( $@ )
+{
+    my ( $self, @key_ids ) = @_;
+    
+    return $self->get_keys( gnupg_commands     => [ '--list-secret-keys' ],
+			    gnupg_command_args => [ @key_ids ],
+			  );
+}
+
+
+
+sub get_public_keys_with_sigs ( $@ )
+{
+    my ( $self, @key_ids ) = @_;
+
+    return $self->get_keys( gnupg_commands     => [ '--list-sigs' ],
+			    gnupg_command_args => [ @key_ids ],
+			  );
+}
+
+
+
+sub get_keys
+{
+    my ( $self, %args ) = @_;
+    
+    my $saved_options = $self->options();
+    my $new_options   = $self->options->copy();
+    $self->options( $new_options );
+    $self->options->push_extra_args( '--with-colons',
+				     '--with-fingerprint',
+				     '--with-fingerprint',
+				   );
+    
+    my $stdin  = gensym;
+    my $stdout = gensym;
+    
+    my $handles = GnuPG::Handles->new( stdin  => $stdin,
+				       stdout => $stdout );
+    
+    my $pid = $self->wrap_call( handles => $handles,
+				%args );
+    
+    my @returned_keys;
+    my $current_key;
+    my $current_signed_item;
+    my $current_fingerprinted_key;
+    
+    while ( my $line = <$stdout> )
+    {
+	chomp $line;
+	my @fields = split ':', $line;
+	next unless @fields > 3;
+	
+	my $record_type = $fields[0];
+	
+	if ( $record_type eq 'pub' or $record_type eq 'sec' )
+	{
+	    push @returned_keys, $current_key
+	      if $current_key;
+	    
+	    my ( $user_id_validity, $key_length, $algo_num, $hex_key_id,
+		 $creation_date_string, $expiration_date_string,
+		 $local_id, $owner_trust, $user_id_string )
+	      = @fields[1..$#fields];
+	    
+	    $current_key = $current_fingerprinted_key
+	      = $record_type eq 'pub'
+		? GnuPG::PublicKey->new()
+		  : GnuPG::SecretKey->new();
+	    
+	    $current_key->hash_init
+	      ( length                 => $key_length,
+		algo_num               => $algo_num,
+		hex_id                 => $hex_key_id,
+		local_id               => $local_id,
+		owner_trust            => $owner_trust,
+		creation_date_string   => $creation_date_string,
+		expiration_date_string => $expiration_date_string,
+	      );
+	    
+	    $current_signed_item = GnuPG::UserId->new
+	      ( validity        => $user_id_validity,
+		user_id_string  => $user_id_string,
+	      );
+	    
+	    $current_key->push_user_ids( $current_signed_item );
+	}
+	elsif ( $record_type eq 'fpr' )
+	{
+	    my $fingerprint = $fields[9];
+	    $current_fingerprinted_key->fingerprint->hex_data( $fingerprint );
+	}
+	elsif ( $record_type eq 'sig' )
+	{
+	    my ( $algo_num, $hex_key_id,
+		 $signature_date_string, $user_id_string )
+	      = @fields[3..5,9];
+	    
+	    my $signature = GnuPG::Signature->new
+	      ( algo_num              => $algo_num,
+		hex_id                => $hex_key_id,
+		date_string           => $signature_date_string,
+		user_id_string        => $user_id_string
+	      );
+	    
+	    if ( $current_signed_item->isa( 'GnuPG::UserId' ) )
+	    {
+		$current_signed_item->push_signatures( $signature );
+	    }
+	    elsif ( $current_signed_item->isa( 'GnuPG::SubKey' ) )
+	    {
+		$current_signed_item->signature( $signature );
+	    }
+	    else
+	    {
+		warn "do not know how to handle signature line: $line\n";
+	    }
+	}
+	elsif ( $record_type eq 'uid' )
+	{
+	    my ( $validity, $user_id_string ) = @fields[1,9];
+	    
+	    $current_signed_item = GnuPG::UserId->new
+	      ( validity       => $validity,
+		user_id_string => $user_id_string,
+	      );
+	    
+	    $current_key->push_user_ids( $current_signed_item );
+	}
+	elsif ( $record_type eq 'sub' or $record_type eq 'ssb' )
+	{
+	    my ( $validity, $key_length, $algo_num, $hex_id,
+		 $creation_date_string, $expiration_date_string,
+		 $local_id )
+	      = @fields[1..7];
+	    
+	    $current_signed_item = $current_fingerprinted_key
+	      = GnuPG::SubKey->new
+		( validity               => $validity,
+		  length                 => $key_length,
+		  algo_num               => $algo_num,
+		  hex_id                 => $hex_id,
+		  creation_date_string   => $creation_date_string,
+		  expiration_date_string => $expiration_date_string,
+		  local_id               => $local_id,
+		);
+	    
+	    $current_key->push_subkeys( $current_signed_item );
+	}
+	else
+	{
+	    warn "unknown record type $record_type"; 
+	}
+    }
+    
+    waitpid $pid, 0;
+    
+    push @returned_keys, $current_key
+      if $current_key;
+    
+    $self->options( $saved_options );
+    
+    return @returned_keys;
+}
+
+
+################################################################
+
+
+sub list_public_keys
+{
+    my ( $self, %args ) = @_;
+    return $self->wrap_call( %args,
+			     gnupg_commands => [ '--list-public-keys' ],
+			   );
+}
+
+
+sub list_sigs
+{
+    my ( $self, %args ) = @_;
+    return $self->wrap_call( %args,
+			     gnupg_commands => [ '--list-sigs' ],
+			   );
+}
+
+
+
+sub list_secret_keys
+{
+    my ( $self, %args ) = @_;
+    return $self->wrap_call( %args,
+			     gnupg_commands => [ '--list-secret-keys' ],
+			   );
+}
+
+
+
+sub encrypt( $% )
+{
+    my ( $self, %args ) = @_;
+    return $self->wrap_call( %args,
+			     gnupg_commands => [ '--encrypt' ] );
+}
+
+
+
+sub encrypt_symmetrically( $% )
+{
+    my ( $self, %args ) = @_;
+    return $self->wrap_call( %args,
+			     gnupg_commands => [ '--symmetric' ] );
+}
+
+
+
+sub sign( $% )
+{
+    my ( $self, %args ) = @_;
+    return $self->wrap_call( %args,
+			     gnupg_commands => [ '--sign' ] );
+}
+
+
+
+sub clearsign( $% )
+{
+    my ( $self, %args ) = @_;
+    die "humph" unless keys %args;
+    return $self->wrap_call( handles => $args{handles},
+			     gnupg_commands => [ '--clearsign' ] );
+}
+
+
+sub detach_sign( $% )
+{
+    my ( $self, %args ) = @_;
+    return $self->wrap_call( %args,
+			     gnupg_commands => [ '--detach-sign' ] );
+}
+
+
+
+sub sign_and_encrypt( $% )
+{
+    my ( $self, %args ) = @_;
+    return $self->wrap_call( %args,
+			     gnupg_commands => [ '--sign',
+						 '--encrypt' ] );
+}
+
+
+
+sub decrypt( $% )
+{
+    my ( $self, %args ) = @_;
+    return $self->wrap_call( %args,
+			     gnupg_commands => [ '--decrypt' ] );
+}
+
+
+
+sub verify( $% )
+{
+    my ( $self, %args ) = @_;
+    return $self->wrap_call( %args,
+			     gnupg_commands => [ '--verify' ] );
+}
+
+
+
+sub import_keys( $% )
+{
+    my ( $self, %args ) = @_;
+    return $self->wrap_call( %args,
+			     gnupg_commands      => [ '--import' ],
+			     gnupg_command_args  => [ '-' ] );
+}
+
+
+
+sub export_keys( $% )
+{
+    my ( $self, %args ) = @_;
+    return $self->wrap_call( %args,
+			     gnupg_commands => [ '--export' ] );
+}
+
+
+sub recv_keys( $% )
+{
+    my ( $self, %args ) = @_;
+    return $self->wrap_call( %args,
+			     gnupg_commands => [ '--recv-keys' ] );
+}
+
+
+
+sub send_keys( $% )
+{
+    my ( $self, %args ) = @_;
+    return $self->wrap_call( %args,
+			     gnupg_commands => [ '--send-keys' ] );
+}
+
+
+sub test_default_key_passphrase()
+{
+    my ( $self ) = @_;
+    
+    # We can't do something like let the user pass
+    # in a passphrase handle because we don't exist
+    # anymore after the user runs off with the
+    # attachments
+    croak 'No passphrase defined to test!'
+      unless defined $self->passphrase();
+    
+    my $stdin       = gensym;
+    my $stdout      = gensym;
+    my $stderr      = gensym;
+    my $status      = gensym;
+    
+    my $handles = GnuPG::Handles->new
+      ( stdin    => $stdin,
+	stdout   => $stdout,
+	stderr   => $stderr,
+	status   => $status );
+    
+    # save this setting since we need to be in non-interactive mode
+    my $saved_meta_interactive_option = $self->options->meta_interactive();
+    $self->options->clear_meta_interactive();
+    
+    my $pid = $self->sign( handles => $handles );
+    
+    close $stdin;
+    
+    # restore this setting to its original setting
+    $self->options->meta_interactive( $saved_meta_interactive_option );
+    
+    # all we realy want to check is the status fh
+    while ( <$status> )
+    {
+	if ( /^\[GNUPG:\]\s*GOOD_PASSPHRASE/ )
+	{
+	    waitpid $pid, 0;
+	    return 1;
+	}
+    }
+    
+    # If we didn't catch the regexp above, we'll assume
+    # that the passphrase was incorrect
+    waitpid $pid, 0;
+    return 0;
+}
+
 
 1;
 
-__END__
+##############################################################
+
 
 =head1 NAME
 

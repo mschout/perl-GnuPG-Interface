@@ -7,6 +7,7 @@ you need to install these modules; each required one should
 be shipped with this package, and found in the "modules" directory.
 If not, fetch them from CPAN at http://www.cpan.org/
 
+make
 make test
 make install
 
