@@ -1,0 +1,20 @@
+In order to install this module, first run
+
+perl Makefile.PL
+
+If this command says that some prerequisite modules are not present,
+you need to install these modules; each required one should
+be shipped with this package, and found in the "modules" directory.
+If not, fetch them from CPAN at http://www.cpan.org/
+
+make test
+make install
+
+This module depends on:
+
+	Perl 5.005
+	Class::MethodMaker 0.92	available from CPAN; http://www.cpan.org/
+	GnuPG			available from http://www.gnupg.org/
+
+
+-----------------------------------------------------------------------

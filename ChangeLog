@@ -1,0 +1,82 @@
+2000-04-25 17:02  ftobin
+
+	* NEWS: put in 0.04 NEWS
+
+2000-04-25 16:58  ftobin
+
+	* lib/GnuPG/Interface.pm: ready for 0.04
+	
+	0.04 is a repackaging release of 0.03
+
+2000-04-25 16:41  ftobin
+
+	* NEWS, lib/GnuPG/Interface.pm: ready for 0.03
+
+2000-04-25 16:01  ftobin
+
+	* MANIFEST: added NEWS to MANIFEST
+
+2000-04-25 15:40  ftobin
+
+	* MANIFEST: added ChangeLog to the MANIFEST
+
+2000-04-25 15:29  ftobin
+
+	* NEWS, lib/GnuPG/Interface.pm: ready for 2.8.0
+
+2000-04-25 15:23  ftobin
+
+	* lib/GnuPG/Options.pm: fixed bug with meta-pgp-5-compatibility
+	which was using underscores in the option passed to GnuPG instead
+	of dashes
+
+2000-04-20 21:13  ftobin
+
+	* lib/GnuPG/Interface.pm: removed debugging filehandle stuff from
+	Interface.pm This caused problems when the user does funky stuff
+	like close the STDOUT or does stuff with STDERR
+
+2000-04-20 09:30  ftobin
+
+	* lib/GnuPG/: Fingerprint.pm, Handles.pm, Interface.pm, Key.pm,
+	Options.pm, PublicKey.pm, SecretKey.pm, SubKey.pm, UserId.pm: POD
+	cleanups, mainly providing L<>'s in the SEE ALSO sections.
+
+2000-04-19 16:06  ftobin
+
+	* COPYING, MANIFEST, Makefile.PL, README, THANKS,
+	lib/GnuPG/Fingerprint.pm, lib/GnuPG/Handles.pm,
+	lib/GnuPG/Interface.pm, lib/GnuPG/Key.pm, lib/GnuPG/Options.pm,
+	lib/GnuPG/PublicKey.pm, lib/GnuPG/SecretKey.pm,
+	lib/GnuPG/Signature.pm, lib/GnuPG/SubKey.pm, lib/GnuPG/UserId.pm,
+	t/MyTest.pm, t/MyTestSpecific.pm, t/clearsign.t, t/decrypt.t,
+	t/detach_sign.t, t/encrypt.t, t/encrypt_symmetrically.t,
+	t/export_keys.t, t/get_public_keys.t, t/get_secret_keys.t,
+	t/import_keys.t, t/list_public_keys.t, t/list_secret_keys.t,
+	t/list_sigs.t, t/passphrase_handling.t, t/sign.t,
+	t/sign_and_encrypt.t, t/verify.t, test/encrypted.1.gpg,
+	test/key.1.asc, test/options, test/plain.1.txt,
+	test/public-keys-sigs.1.txt, test/public-keys-sigs.2.txt,
+	test/public-keys.1.txt, test/public-keys.2.txt, test/pubring.gpg,
+	test/secret-keys.1.txt, test/secret-keys.2.txt, test/secring.gpg,
+	test/signed.1.asc, test/trustdb.gpg: initial sourceforge deposit
+
+2000-04-19 16:06  ftobin
+
+	* COPYING, MANIFEST, Makefile.PL, README, THANKS,
+	lib/GnuPG/Fingerprint.pm, lib/GnuPG/Handles.pm,
+	lib/GnuPG/Interface.pm, lib/GnuPG/Key.pm, lib/GnuPG/Options.pm,
+	lib/GnuPG/PublicKey.pm, lib/GnuPG/SecretKey.pm,
+	lib/GnuPG/Signature.pm, lib/GnuPG/SubKey.pm, lib/GnuPG/UserId.pm,
+	t/MyTest.pm, t/MyTestSpecific.pm, t/clearsign.t, t/decrypt.t,
+	t/detach_sign.t, t/encrypt.t, t/encrypt_symmetrically.t,
+	t/export_keys.t, t/get_public_keys.t, t/get_secret_keys.t,
+	t/import_keys.t, t/list_public_keys.t, t/list_secret_keys.t,
+	t/list_sigs.t, t/passphrase_handling.t, t/sign.t,
+	t/sign_and_encrypt.t, t/verify.t, test/encrypted.1.gpg,
+	test/key.1.asc, test/options, test/plain.1.txt,
+	test/public-keys-sigs.1.txt, test/public-keys-sigs.2.txt,
+	test/public-keys.1.txt, test/public-keys.2.txt, test/pubring.gpg,
+	test/secret-keys.1.txt, test/secret-keys.2.txt, test/secring.gpg,
+	test/signed.1.asc, test/trustdb.gpg: Initial revision
+
