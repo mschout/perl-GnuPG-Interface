@@ -17,7 +17,7 @@
 #  along with this program; if not, visit the following URL:
 #  http://www.gnu.org
 #
-#  $Id: Interface.pm,v 1.7 2000/05/11 09:08:12 ftobin Exp $
+#  $Id: Interface.pm,v 1.8 2000/05/25 01:21:33 ftobin Exp $
 #
 
 package GnuPG::Interface;
@@ -41,7 +41,7 @@ use GnuPG::Fingerprint;
 use GnuPG::UserId; 
 use GnuPG::Signature;
 
-$VERSION = "0.06";
+$VERSION = '0.07';
 
 use constant DEBUG => 0;
 

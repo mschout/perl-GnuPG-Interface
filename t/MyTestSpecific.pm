@@ -17,7 +17,7 @@
 #  along with this program; if not, visit the following URL:
 #  http://www.gnu.org
 #
-#  $Id: MyTestSpecific.pm,v 1.1.1.1 2000/04/19 21:06:33 ftobin Exp $
+#  $Id: MyTestSpecific.pm,v 1.2 2000/05/25 01:22:29 ftobin Exp $
 #
 
 use strict;
@@ -47,14 +47,14 @@ use vars qw( @ISA           @EXPORT
 $gpg_program = 'gpg';
 
 $gnupg = GnuPG::Interface->new( gnupg_call  => $gpg_program,
-				  passphrase  => 'test' );
+				passphrase  => 'test' );
 
-$gnupg->options->hash_init( homedir           => 'test',
-			 armor             => 1,
-			 meta_interactive  => 0,
-			 meta_signing_key  => '0xF950DA9C',
-		       );
-			 
+$gnupg->options->hash_init( homedir              => 'test',
+			    armor                => 1,
+			    meta_interactive     => 0,
+			    meta_signing_key_id  => '0xF950DA9C',
+			  );
+
 
 my $filename = 'test/plain.1.txt';
 my $file = IO::File->new( $filename )

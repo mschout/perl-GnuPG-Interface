@@ -17,7 +17,7 @@
 #  along with this program; if not, visit the following URL:
 #  http://www.gnu.org
 #
-#  $Id: Options.pm,v 1.4 2000/05/17 20:30:24 ftobin Exp $
+#  $Id: Options.pm,v 1.5 2000/05/25 01:20:32 ftobin Exp $
 #
 
 package GnuPG::Options;
@@ -34,7 +34,7 @@ use constant BOOLEANS => qw( armor
 			     force_v3_sigs
 			     no_options
 			     textmode
-			       
+			     
 			     meta_pgp_5_compatible
 			     meta_pgp_2_compatible
 			     meta_interactive
@@ -48,11 +48,13 @@ use constant SCALARS => qw( homedir
 			    options
 			    
 			    meta_signing_key
+			    meta_signing_key_id
 			  );
 
 use constant LISTS => qw( encrypt_to
 			  recipients
 			  meta_recipients_keys
+			  meta_recipients_key_ids
 			  extra_args
 			);
 
@@ -108,29 +110,34 @@ sub get_option_args
 
     my @args = ();
     
-    push @args, '--homedir',       $self->homedir()         if $self->homedir();
-    push @args, '--options',       $self->options()         if $self->options();
-    push @args, '--no-options'                              if $self->no_options();
-    push @args, '--armor'                                   if $self->armor();
-    push @args, '--textmode'                                if $self->textmode();
-    push @args, '--default-key',   $self->default_key()     if $self->default_key();
-    push @args, '--no-greeting'                             if $self->no_greeting();
-    push @args, '--verbose'                                 if $self->verbose();
-    push @args, '--no-verbose'                              if $self->no_verbose();
-    push @args, '--quiet'                                   if $self->quiet();
-    push @args, '--batch'                                   if $self->batch();
-    push @args, '--always-trust'                            if $self->always_trust();
-    push @args, '--comment',       $self->comment()         if $self->comment();
-    push @args, '--no-comment'                              if $self->no_comment();
-    push @args, '--status-fd',     $self->status_fd()       if defined $self->status_fd();
-    push @args, '--logger-fd',     $self->logger_fd()       if defined $self->logger_fd();
-    push @args, '--passphrase-fd', $self->passphrase_fd()   if defined $self->passphrase_fd();
-    push @args, '--compress-algo', $self->compress_algo()   if defined $self->compress_algo();
-    push @args, '--force-v3-sigs'                           if $self->force_v3_sigs();
-    push @args, '--rfc1991'                                 if $self->rfc1991;
-    push @args, '--openpgp'                                 if $self->openpgp();
+    push @args, '--homedir', $self->homedir() if $self->homedir();
+    push @args, '--options', $self->options() if $self->options();
+    push @args, '--no-options' if $self->no_options();
+    push @args, '--armor'      if $self->armor();
+    push @args, '--textmode'   if $self->textmode();
+    push @args, '--default-key', $self->default_key() if $self->default_key();
+    push @args, '--no-greeting'  if $self->no_greeting();
+    push @args, '--verbose'      if $self->verbose();
+    push @args, '--no-verbose'   if $self->no_verbose();
+    push @args, '--quiet'        if $self->quiet();
+    push @args, '--batch'        if $self->batch();
+    push @args, '--always-trust' if $self->always_trust();
+    push @args, '--no-comment'   if $self->no_comment();
+    push @args, '--comment',     $self->comment() if $self->comment();
+    push @args, '--force-v3-sigs'  if $self->force_v3_sigs();
+    push @args, '--rfc1991'        if $self->rfc1991;
+    push @args, '--openpgp'        if $self->openpgp();
+    push @args, '--compress-algo', $self->compress_algo()
+      if defined $self->compress_algo();
     
-    push @args, map { ( '--recipient', $_ ) } $self->recipients();
+    push @args, '--status-fd',       $self->status_fd()
+      if defined $self->status_fd();
+    push @args, '--logger-fd',       $self->logger_fd() 
+      if defined $self->logger_fd();
+    push @args, '--passphrase-fd',   $self->passphrase_fd()
+      if defined $self->passphrase_fd();
+    
+    push @args, map { ( '--recipient', $_ ) }  $self->recipients();
     push @args, map { ( '--encrypt-to', $_ ) } $self->encrypt_to();
     
     return @args;
@@ -144,11 +151,20 @@ sub get_meta_args
     
     my @args = ();
     
-    push @args, '--compress-algo', 1, '--force-v3-sigs'     if $self->meta_pgp_5_compatible();
-    push @args, '--rfc1991'                                 if $self->meta_pgp_2_compatible();
-    push @args, '--batch', '--no-tty'                       if not $self->meta_interactive();
-    push @args, '--default-key', $self->meta_signing_key()  if $self->meta_signing_key();
+    push @args, '--compress-algo', 1, '--force-v3-sigs' 
+      if $self->meta_pgp_5_compatible();
+    push @args, '--rfc1991'            if $self->meta_pgp_2_compatible();
+    push @args, '--batch', '--no-tty'  if not $self->meta_interactive();
     
+    # To eliminate confusion, we'll move to having any options
+    # that deal with keys end in _id(s) if they only take
+    # an id; otherwise we assume that a GnuPG::Key
+    push @args, '--default-key', $self->meta_signing_key_id()
+      if $self->meta_signing_key_id();
+    push @args, '--default-key', $self->meta_signing_key()->hex_id()
+      if $self->meta_signing_key();
+    
+    push @args, map { ( '--recipient', $_ ) } $self->meta_recipients_key_ids();
     push @args, map { ( '--recipient', $_->hex_id() ) } $self->meta_recipients_keys();
     
     return @args;
@@ -273,6 +289,15 @@ compatibility with PGP 5.  The actual arguments each of these
 reflects may change with time.  Each defaults to false unless
 otherwise specified.
 
+These options are being designed and to provide a non-GnuPG-specific
+abstraction, to help create compatibility with a possible
+PGP::Interface module.
+
+To help avoid confusion, methods with take a form of a key as
+an object shall be prepended with I<_id(s)> if they only
+take an id; otherwise assume an object of type GnuPG::Key
+is required.
+
 =item meta_pgp_5_compatible
 
 If true, arguments are generated to try to be compatible with PGP 5.
@@ -287,14 +312,23 @@ If false, arguments are generated to try to help the using program
 use GnuPG in a non-interactive environment, such as CGI scripts.
 Default is true.
 
-=item meta_signing_key
+=item meta_signing_key_id
 
 This scalar reflects the key used to sign messages.
-Currently this is synonymous with the B<default_key> data member.
+Currently this is synonymous with I<default-key>.
+
+=item meta_signing_key
+
+This GnuPG::Key object reflects the key used to sign messages.
+
+=item meta_recipients_key_ids
+
+This list of scalar key ids are used to generate the
+appropriate arguments having these keys as recipients.
 
 =item meta_recipients_keys
 
-This list of keys, of the type GnuPG::Key, are used to generate the
+This list of keys of the type GnuPG::Key are used to generate the
 appropriate arguments having these keys as recipients.
 
 =back

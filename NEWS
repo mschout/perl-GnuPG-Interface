@@ -1,7 +1,21 @@
+Noteworthy changes in 0.07
+-----------------------------------------------------------------
+
+    *	BACKWARDS COMPATIBILITY issue:
+	GnuPG::Options->meta_signing_key() now expects
+	an argument of type GnuPG::Object, instead of a scalar
+	key id.  See the following note for more details.
+
+    *	GnuPG::Options 'meta' methods that deal with keys arguments
+	are more consistent now.  Meta methods that accept key
+	ids are now appended with _id(s); other meta methods
+	that accept keys receive GnuPG::Key objects.
+
+
 Noteworthy changes in 0.06
 -----------------------------------------------------------------
 
-  *	textmode option added to GnuPG::Options, and
+    *	textmode option added to GnuPG::Options, and
 	booleans of GnuPG::Options now make use
 	of Class::MethodMaker's boolean usability.
 
@@ -9,7 +23,7 @@ Noteworthy changes in 0.06
 Noteworthy changes in 0.04
 -----------------------------------------------------------------
 
-  *	This is a re-packaging release of 0.03.
+    *	This is a re-packaging release of 0.03.
 
 
 Noteworty changes in 0.03
