@@ -17,7 +17,7 @@
 #  along with this program; if not, visit the following URL:
 #  http://www.gnu.org
 #
-#  $Id: MyTestSpecific.pm,v 1.3 2000/07/12 02:56:33 ftobin Exp $
+#  $Id: MyTestSpecific.pm,v 1.4 2000/07/23 01:46:04 ftobin Exp $
 #
 
 use strict;
@@ -42,7 +42,7 @@ use vars qw( @ISA           @EXPORT
 @ISA    = qw( Exporter );
 @EXPORT = qw( stdin                  stdout          stderr
 	      gnupg_program handles  reset_handles
-	      texts           file_match
+	      texts                  file_match
 	    );
 
 
@@ -56,6 +56,7 @@ $gnupg->options->hash_init( homedir              => 'test',
 			    armor                => 1,
 			    meta_interactive     => 0,
 			    meta_signing_key_id  => '0xF950DA9C',
+			    always_trust         => 1,
 			  );
 
 struct( Text => { fn => "\$", fh => "\$", data => "\$" } );

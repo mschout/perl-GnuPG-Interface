@@ -17,7 +17,7 @@
 #  along with this program; if not, visit the following URL:
 #  http://www.gnu.org
 #
-#  $Id: Interface.pm,v 1.22 2000/07/13 06:36:46 ftobin Exp $
+#  $Id: Interface.pm,v 1.25 2000/08/04 04:42:17 ftobin Exp $
 #
 
 package GnuPG::Interface;
@@ -29,22 +29,13 @@ use Symbol;
 use Fcntl;
 use vars qw( $VERSION @ISA );
 use Fatal qw( open close pipe fcntl );
-use AutoLoader;
+use AutoLoader 'AUTOLOAD';
 use Class::Struct;
-
-push @ISA, 'AutoLoader';
 
 use GnuPG::Options;
 use GnuPG::Handles;
 
-use GnuPG::PublicKey;
-use GnuPG::SecretKey;
-use GnuPG::SubKey; 
-use GnuPG::Fingerprint;
-use GnuPG::UserId; 
-use GnuPG::Signature;
-
-$VERSION = '0.10';
+$VERSION = '0.11';
 
 use Class::MethodMaker
   get_set         => [ qw( gnupg_call  passphrase ) ],
@@ -432,6 +423,13 @@ sub get_keys
     my $current_key;
     my $current_signed_item;
     my $current_fingerprinted_key;
+    
+    require GnuPG::PublicKey;
+    require GnuPG::SecretKey;
+    require GnuPG::SubKey; 
+    require GnuPG::Fingerprint;
+    require GnuPG::UserId; 
+    require GnuPG::Signature;
     
     while ( my $line = <$stdout> )
     {

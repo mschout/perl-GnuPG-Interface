@@ -1,3 +1,17 @@
+Noteworthy changes in 0.11
+-----------------------------------------------------------------
+
+    *	AutoLoader is now used correctly.
+
+    *	GnuPG::Options->no_comment() is no longer exists, for clarity.
+	(It doesn't do what you think it does).
+
+    *	GnuPG::Options->comment() will now only not cause
+	a --comment option to be used if it's value is undefined.
+	This means you can do $gnupg->options->comment( '' )
+	to prevent a comment from being used.
+
+
 Noteworthy changes in 0.10
 -----------------------------------------------------------------
 

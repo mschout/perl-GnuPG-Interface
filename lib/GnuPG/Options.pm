@@ -17,7 +17,7 @@
 #  along with this program; if not, visit the following URL:
 #  http://www.gnu.org
 #
-#  $Id: Options.pm,v 1.8 2000/07/12 07:43:46 ftobin Exp $
+#  $Id: Options.pm,v 1.11 2000/07/27 16:26:49 ftobin Exp $
 #
 
 package GnuPG::Options;
@@ -29,7 +29,6 @@ use constant BOOLEANS => qw( armor
 			     verbose             no_verbose       quiet
 			     batch
 			     always_trust
-			     no_comment
 			     rfc1991             openpgp
 			     force_v3_sigs
 			     no_options
@@ -99,7 +98,7 @@ sub get_args
     
     return ( $self->get_meta_args(),
 	     $self->get_option_args(),
-	     $self->extra_args()
+	     $self->extra_args(),
 	   );
 }
 
@@ -123,8 +122,7 @@ sub get_option_args
     push @args, '--quiet'        if $self->quiet();
     push @args, '--batch'        if $self->batch();
     push @args, '--always-trust' if $self->always_trust();
-    push @args, '--no-comment'   if $self->no_comment();
-    push @args, '--comment',     $self->comment() if $self->comment();
+    push @args, '--comment',     $self->comment() if defined $self->comment();
     push @args, '--force-v3-sigs'  if $self->force_v3_sigs();
     push @args, '--rfc1991'        if $self->rfc1991;
     push @args, '--openpgp'        if $self->openpgp();
@@ -252,8 +250,6 @@ and L<Class::MethodMaker/"list">.  Please read there for more information.
 
 =item comment
 
-=item no_comment
-
 =item status_fd
 
 =item logger_fd
@@ -303,11 +299,11 @@ is required.
 
 =item meta_pgp_5_compatible
 
-If true, arguments are generated to try to be compatible with PGP 5.
+If true, arguments are generated to try to be compatible with PGP 5.x.
 
 =item meta_pgp_2_compatible
 
-If true, arguments are generated to try to be compatible with PGP 5.
+If true, arguments are generated to try to be compatible with PGP 2.x.
 
 =item meta_interactive
 
@@ -342,7 +338,7 @@ appropriate arguments having these keys as recipients.
 
 =item extra_args
 
-This is a list of any other arguments used to pass to GnupG.
+This is a list of any other arguments used to pass to GnuPG.
 Useful to pass an argument not yet covered in this package.
 
 =back

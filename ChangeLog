@@ -1,3 +1,41 @@
+2000-08-05 14:12  ftobin
+
+	* MANIFEST: for sanity, trustdb.gpg is no longer shipped
+
+2000-08-03 23:42  ftobin
+
+	* NEWS, lib/GnuPG/Interface.pm: wrote up news for 0.11, and ready
+	for 0.11
+
+2000-07-31 14:50  ftobin
+
+	* lib/GnuPG/Interface.pm: finally, the proper AutoLoader fix
+
+2000-07-27 11:26  ftobin
+
+	* lib/GnuPG/Options.pm: cosmetic typo
+
+2000-07-23 01:05  ftobin
+
+	* lib/GnuPG/Options.pm: doc fixes
+
+2000-07-22 20:46  ftobin
+
+	* t/MyTestSpecific.pm, test/trustdb.gpg: instead of having trustdb
+	in the CVS repository, which keeps getting altered anyways, let's
+	use GnuPG's --always-trust option.
+
+2000-07-22 20:43  ftobin
+
+	* lib/GnuPG/Options.pm: removed GnuPG::Options->no_comment()
+	because it doesn't do what you think it does, and comment(), if
+	defined but blank should allow GnuPG to use no comment.
+
+2000-07-22 20:39  ftobin
+
+	* lib/GnuPG/Interface.pm, test/trustdb.gpg: require all those extra
+	modules at runtime in the get_keys() method
+
 2000-07-13 01:51  ftobin
 
 	* README: oops, README had wrong version of C::MM in it
