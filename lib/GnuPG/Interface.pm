@@ -17,7 +17,7 @@
 #  along with this program; if not, visit the following URL:
 #  http://www.gnu.org
 #
-#  $Id: Interface.pm,v 1.10 2000/06/20 22:17:36 ftobin Exp $
+#  $Id: Interface.pm,v 1.13 2000/06/26 00:21:44 ftobin Exp $
 #
 
 package GnuPG::Interface;
@@ -44,7 +44,7 @@ use GnuPG::Fingerprint;
 use GnuPG::UserId; 
 use GnuPG::Signature;
 
-$VERSION = '0.08';
+$VERSION = '0.09';
 
 $OUTPUT_AUTOFLUSH = 1;
 
@@ -187,7 +187,7 @@ sub fork_attach_exec( $% )
 	# save a copy of her stdout before I put something else there.
 	if ( $parent_read ne $parent_err
 	     and $dupped_parent_err
-	     and fileno( $parent_err ) == fileno( *STDOUT ) )
+	     and my_fileno( $parent_err ) == my_fileno( \*STDOUT ) )
 	{
 	    my $tmp = gensym;
 	    open $tmp, ">&$parent_err";
@@ -197,25 +197,24 @@ sub fork_attach_exec( $% )
 	
 	if ( $dupped_parent_write )
 	{
-	    open \*STDIN, "<&$parent_write"
-	      unless fileno( STDIN ) == fileno( $parent_write );
+	    open STDIN, "<&$parent_write"
+	      unless my_fileno( \*STDIN ) == my_fileno( $parent_write );
 	}
 	else
 	{
 	    close $parent_write;
-	    open \*STDIN, "<&=" . fileno $child_read;
+	    open STDIN, '<&=' . my_fileno( $child_read );
 	}
-	
 	
 	if ( $dupped_parent_read )
 	{
-	    open \*STDOUT, "<&$parent_read"
-	      unless fileno( STDOUT ) == fileno( $parent_read );
+	    open STDOUT, ">&$parent_read"
+	      unless my_fileno( \*STDOUT ) == my_fileno( $parent_read );
 	}
 	else
 	{
 	    close $parent_read;
-	    open \*STDOUT, ">&=" . fileno $child_write;
+	    open STDOUT, ">&=" . my_fileno( $child_write );
 	}
 	
 	
@@ -226,19 +225,19 @@ sub fork_attach_exec( $% )
 	    # (from the special case above).
 	    if ( $dupped_parent_err )
 	    {
-		open \*STDERR, ">&" . fileno $parent_err
-		  unless fileno( STDERR ) == fileno( $parent_err );
+		open STDERR, ">&" . my_fileno $parent_err
+		  unless my_fileno( \*STDERR ) == my_fileno( $parent_err );
 	    }
 	    else
 	    {
 		close $parent_err;
-		open \*STDERR, ">&" . fileno $child_err;
+		open STDERR, ">&" . my_fileno( $child_err );
 	    }
 	}
 	else
 	{
-	    open \*STDERR, ">&STDOUT"
-	      unless fileno( STDERR ) == fileno( STDOUT );
+	    open STDERR, ">&STDOUT"
+	      unless my_fileno( \*STDERR ) == my_fileno( \*STDOUT );
 	}
 	
 	
@@ -256,13 +255,13 @@ sub fork_attach_exec( $% )
 	fcntl $child_passphrase, F_SETFD, 0 if $parent_passphrase;
 	
 	
-	$self->options->status_fd( fileno $child_status )
+	$self->options->status_fd( my_fileno( $child_status ) )
 	  if $parent_status;
 	
-	$self->options->logger_fd( fileno $child_logger )
+	$self->options->logger_fd( my_fileno( $child_logger ) )
 	  if $parent_logger;
 	
-	$self->options->passphrase_fd( fileno $child_passphrase )
+	$self->options->passphrase_fd( my_fileno( $child_passphrase ) )
 	  if $parent_passphrase;
 	
 	my @command = ( $self->gnupg_call(), $self->options->get_args(),
@@ -295,6 +294,14 @@ sub fork_attach_exec( $% )
       if $parent_passphrase;
     
     return $pid;
+}
+
+
+sub my_fileno
+{
+    my ( $fh ) = @_;
+    return $1 if $fh =~ /^=?(\d+)$/;   # is it a fd in itself?
+    return fileno $fh;
 }
 
 
@@ -833,6 +840,15 @@ the handle created by setting B<status-fd>, the handle created by setting B<logg
 B<passphrase-fd> respectively.
 This tying of handles of similar to the process
 done in I<IPC::Open3>.
+
+Note that if you want to attach an already-exiting, opened handle,
+such as one created from opening a file, set the respective
+handle in the B<handles> object to be duped.  This is done
+setting the handle to be a string, beginning with '>&' (or some
+similar opening mode), followed by the filehandle name, or,
+of it is a symbol or object handle, the file descriptor
+number of the object/symbol.  You can use C<fcntl> to determine
+the file descriptor for a handle.
 
 If any handle in the B<handles> object is not defined, GnuPG's input, output,
 and standard error will be tied to the running program's standard error,

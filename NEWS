@@ -1,3 +1,13 @@
+Noteworthy changes in 0.09
+-----------------------------------------------------------------
+
+    *	Using GnuPG::Handles which are meant to be dupes
+	is now more viable and documented.  In particular,
+	file descriptor numbers (properly prefixed, according
+	to the open() documentation) can be used.
+	This helps when using symbols and and object handles.
+
+
 Noteworthy changes in 0.08
 -----------------------------------------------------------------
 

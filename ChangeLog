@@ -1,3 +1,21 @@
+2000-06-25 19:21  ftobin
+
+	* NEWS, lib/GnuPG/Interface.pm: Now allow fh's like >&=$fh, which
+	are really fd's Also, ready for 0.09
+
+2000-06-25 05:10  ftobin
+
+	* NEWS, lib/GnuPG/Interface.pm: documented how one can use file
+	descriptor numbers to use as dups
+
+2000-06-25 04:16  ftobin
+
+	* lib/GnuPG/Interface.pm: /tmp/cvsk16160
+
+2000-06-20 17:22  ftobin
+
+	* MANIFEST: forgot some files
+
 2000-06-20 17:17  ftobin
 
 	* NEWS, lib/GnuPG/Interface.pm: ready for 0.08
