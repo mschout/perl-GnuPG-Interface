@@ -1,4 +1,7 @@
 #!/usr/bin/perl -w
+#
+# $Id: encrypt_symmetrically.t,v 1.4 2001/05/03 06:00:06 ftobin Exp $
+#
 
 use strict;
 use English;
@@ -11,11 +14,11 @@ TEST
 {
     reset_handles();
     
-    $gnupg->encrypt_symmetrically( handles => $handles );
+    my $pid = $gnupg->encrypt_symmetrically( handles => $handles );
     
     print $stdin @{ $texts{plain}->data() };
     close $stdin;
-    wait;
+    waitpid $pid, 0;
     
     return $CHILD_ERROR == 0;
 };
@@ -28,9 +31,9 @@ TEST
     
     $handles->stdin( $texts{plain}->fh() );
     $handles->options( 'stdin' )->{direct} = 1;
-    $gnupg->encrypt_symmetrically( handles => $handles );
+    my $pid = $gnupg->encrypt_symmetrically( handles => $handles );
     
-    wait;
+    waitpid $pid, 0;
     
     return $CHILD_ERROR == 0;
 };

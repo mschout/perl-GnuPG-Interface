@@ -1,4 +1,7 @@
 #!/usr/bin/perl -w
+#
+# $Id: decrypt.t,v 1.4 2001/05/03 06:00:06 ftobin Exp $
+#
 
 use strict;
 use English;
@@ -14,14 +17,14 @@ TEST
 {
     reset_handles();
     
-    $gnupg->decrypt( handles => $handles );
+    my $pid = $gnupg->decrypt( handles => $handles );
     
     print $stdin @{ $texts{encrypted}->data() };
     close $stdin;
     
     $compare = compare( $texts{plain}->fn(), $stdout );
     close $stdout;
-    wait;
+    waitpid $pid, 0;
     
     return $CHILD_ERROR == 0;;
 };
@@ -43,9 +46,9 @@ TEST
     $handles->stdout( $texts{temp}->fh() );
     $handles->options( 'stdout' )->{direct} = 1;
     
-    $gnupg->decrypt( handles => $handles );
+    my $pid = $gnupg->decrypt( handles => $handles );
     
-    wait;
+    waitpid $pid, 0;
     
     return $CHILD_ERROR == 0;
 };

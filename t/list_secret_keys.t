@@ -1,4 +1,7 @@
 #!/usr/bin/perl -w
+#
+# $Id: list_secret_keys.t,v 1.7 2001/05/03 06:00:06 ftobin Exp $
+#
 
 use strict;
 use English;
@@ -13,7 +16,7 @@ TEST
 {
     reset_handles();
     
-    $gnupg->list_secret_keys( handles => $handles );
+    my $pid = $gnupg->list_secret_keys( handles => $handles );
     close $stdin;
     
     $outfile = 'test/secret-keys/1.out';
@@ -22,7 +25,7 @@ TEST
     $out->print( <$stdout> );
     close $stdout;
     $out->close();
-    wait;
+    waitpid $pid, 0;
     
     return $CHILD_ERROR == 0;
 };
@@ -40,8 +43,8 @@ TEST
 {
     reset_handles();
     
-    $gnupg->list_secret_keys( handles              => $handles,
-			      gnupg_command_args => '0xF950DA9C' );
+    my $pid = $gnupg->list_secret_keys( handles      => $handles,
+					command_args => '0xF950DA9C' );
     close $stdin;
     
     $outfile = 'test/secret-keys/2.out';
@@ -50,7 +53,8 @@ TEST
     $out->print( <$stdout> );
     close $stdout;
     $out->close();
-    wait;
+    
+    waitpid $pid, 0;
     
     return $CHILD_ERROR == 0;
     
@@ -64,10 +68,10 @@ TEST
     $handles->stdout( $texts{temp}->fh() );
     $handles->options( 'stdout' )->{direct} = 1;
     
-    $gnupg->list_secret_keys( handles            => $handles,
-			      gnupg_command_args => '0xF950DA9C' );
+    my $pid = $gnupg->list_secret_keys( handles      => $handles,
+					command_args => '0xF950DA9C' );
     
-    wait;
+    waitpid $pid, 0;
     
     $outfile = $texts{temp}->fn();
     

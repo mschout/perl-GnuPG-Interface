@@ -45,6 +45,7 @@ t/passphrase_handling.t
 t/sign.t
 t/sign_and_encrypt.t
 t/verify.t
+t/wrap_call.t
 test/encrypted.1.gpg
 test/key.1.asc
 test/options

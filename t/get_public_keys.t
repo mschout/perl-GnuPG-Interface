@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 #
-# $Id: get_public_keys.t,v 1.8 2001/04/30 01:36:12 ftobin Exp $
+# $Id: get_public_keys.t,v 1.9 2001/05/03 06:00:06 ftobin Exp $
+#
 
 use strict;
 use English;

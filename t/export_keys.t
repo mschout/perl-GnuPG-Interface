@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 #
-# $Id: export_keys.t,v 1.5 2001/04/28 00:58:04 ftobin Exp $
+# $Id: export_keys.t,v 1.6 2001/05/03 06:00:06 ftobin Exp $
+#
 
 use strict;
 use English;
@@ -13,10 +14,10 @@ TEST
 {
     reset_handles();
     
-    $gnupg->export_keys( handles            => $handles,
-			 gnupg_command_args => '0xF950DA9C' );
+    my $pid = $gnupg->export_keys( handles      => $handles,
+				   command_args => '0xF950DA9C' );
     close $stdin;
-    wait;
+    waitpid $pid, 0;
     
     return $CHILD_ERROR == 0;
 };
@@ -29,8 +30,8 @@ TEST
     $handles->stdout( $texts{temp}->fh() );
     $handles->options( 'stdout' )->{direct} = 1;
     
-    $gnupg->export_keys( handles            => $handles,
-			 gnupg_command_args => '0xF950DA9C' );
-    wait;
+    my $pid = $gnupg->export_keys( handles            => $handles,
+				   command_args => '0xF950DA9C' );
+    waitpid $pid, 0;
     return $CHILD_ERROR == 0;
 };

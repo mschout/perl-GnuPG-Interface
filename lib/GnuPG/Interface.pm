@@ -10,7 +10,7 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: Interface.pm,v 1.34 2001/05/01 02:34:30 ftobin Exp $
+#  $Id: Interface.pm,v 1.37 2001/05/03 07:40:45 ftobin Exp $
 #
 
 package GnuPG::Interface;
@@ -28,7 +28,7 @@ use IO::Handle;
 use GnuPG::Options;
 use GnuPG::Handles;
 
-$VERSION = '0.30';
+$VERSION = '0.31';
 
 use Class::MethodMaker
   get_set         => [ qw( call  passphrase ) ],
@@ -116,18 +116,18 @@ sub fork_attach_exec( $% )
     
     my $handles = $args{handles} or croak 'no GnuPG::Handles passed';
     
-    my @commands = $args{commands}
-    ? @{ $args{commands} } : () or croak 'no gnupg command passed';
+    # deprecation support
+    $args{commands} ||= $args{gnupg_commands};
     
-    my @command_args = ();
-    if ( ref $args{command_args} )
-    {
-	@command_args = @{ $args{command_args} };
-    }
-    elsif ( $args{command_args } )
-    {
-	@command_args = ( $args{command_args} );
-    }
+    my @commands = ref $args{commands}
+      ? @{ $args{commands} } : ( $args{commands} )
+	or croak "no gnupg commands passed";
+    
+    # deprecation support
+    $args{command_args} ||= $args{gnupg_command_args};
+    
+    my @command_args = ref $args{command_args}
+      ? @{ $args{command_args} } : ( $args{command_args } || () );
     
     my %fhs;
     foreach my $fh_name ( qw( stdin stdout stderr status
@@ -781,7 +781,7 @@ GnuPG::Interface - Perl interface to GnuPG
 
   # Now we'll go about encrypting with the options already set
   my @plaintext = ( 'foobar' );
-  $gnupg->encrypt( handles => $handles );
+  my $pid = $gnupg->encrypt( handles => $handles );
   
   # Now we write to the input of GnuPG
   print $input @plaintext;
@@ -791,7 +791,7 @@ GnuPG::Interface - Perl interface to GnuPG
   my @ciphertext = <$output>;
   close $output;
 
-  wait;
+  waitpid $pid, 0;
 
 =head1 DESCRIPTION
 
@@ -972,6 +972,7 @@ key specified in the B<options> data member.
 
 =back
 
+
 =head1 Invoking GnuPG with a custom call
 
 GnuPG::Interface attempts to cover a lot of the commands
@@ -986,9 +987,9 @@ interface is provided, C<wrap_call>.
 Call GnuPG with a custom command.  The %args hash must contain
 at least the following keys:
 
-=over 6
+=over 4
 
-=item command
+=item commands
 
 The value of this key in the hash must be a reference to a a list of
 commands for GnuPG, such as C<[ qw( --encrypt --sign ) ]>.
@@ -1002,7 +1003,7 @@ must be a GnuPG::Handles object.
 
 The following keys are optional.
 
-=over 6
+=over 4
 
 =item command_args
 
@@ -1012,6 +1013,9 @@ to be passed to the GnuPG command, such as which
 keys to list in a key-listing.
 
 =back
+
+=back
+
 
 =head1 OBJECT DATA MEMBERS
 
@@ -1076,7 +1080,7 @@ The following setup can be done before any of the following examples:
   # this sets up the communication
   # Note that the recipients were specified earlier
   # in the 'options' data member of the $gnupg object.
-  $gnupg->encrypt( handles => $handles );
+  my $pid = $gnupg->encrypt( handles => $handles );
 
   # this passes in the plaintext
   print $input @original_plaintext;
@@ -1087,7 +1091,7 @@ The following setup can be done before any of the following examples:
 
   my @ciphertext = <$output>;  # reading the output
 
-  wait;  # clean up the finished GnuPG process
+  waitpid $pid, 0;  # clean up the finished GnuPG process
 
 =head2 Signing
 
@@ -1107,7 +1111,7 @@ The following setup can be done before any of the following examples:
   $gnupg->passphrase( $passphrase );
 
   # this sets up the communication
-  $gnupg->sign( handles => $handles );
+  my $pid = $gnupg->sign( handles => $handles );
 
   # this passes in the plaintext
   print $input @original_plaintext;
@@ -1122,7 +1126,7 @@ The following setup can be done before any of the following examples:
   close $output;
   close $error;
 
-  wait;  # clean up the finished GnuPG process
+  waitpid $pid, 0;  # clean up the finished GnuPG process
 
 =head2 Decryption
 
@@ -1150,7 +1154,7 @@ The following setup can be done before any of the following examples:
   my $cipher_file = IO::File->new( 'encrypted.gpg' );
    
   # this sets up the communication
-  $gnupg->decrypt( handles => $handles );
+  my $pid = $gnupg->decrypt( handles => $handles );
 
   # This passes in the passphrase
   print $passphrase_fd $passphrase;
@@ -1173,7 +1177,7 @@ The following setup can be done before any of the following examples:
   close $error;
   close $status_fh;
 
-  wait;  # clean up the finished GnuPG process
+  waitpid $pid, 0;  # clean up the finished GnuPG process
 
 =head2 Printing Keys
 
@@ -1186,10 +1190,10 @@ The following setup can be done before any of the following examples:
   # this time we need to specify something for
   # command_args because --list-public-keys takes
   # search ids as arguments
-  $gnupg->list_public_keys( handles      => $handles,
-                            command_args => [ @ids ]  );
+  my $pid = $gnupg->list_public_keys( handles      => $handles,
+                                      command_args => [ @ids ]  );
   
-   wait;
+   waitpid $pid, 0;
 
 =head2 Creating GnuPG::PublicKey Objects
 
@@ -1199,6 +1203,18 @@ The following setup can be done before any of the following examples:
 
   # no wait is required this time; it's handled internally
   # since the entire call is encapsulated
+
+=head2 Custom GnuPG call
+
+  # assuming $handles is a GnuPG::Handles object
+  my $pid = $gnupg->wrap_call
+    ( commands     => [ qw( --list-packets ) ],
+      command_args => [ qw( test/key.1.asc ) ],
+      handles      => $handles,
+    );
+    
+    my @out = <$handles->stdout()>;
+    waitpid $pid, 0;
 
 
 =head1 FAQ

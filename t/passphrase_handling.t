@@ -1,4 +1,7 @@
 #!/usr/bin/perl -w
+#
+# $Id: passphrase_handling.t,v 1.6 2001/05/03 06:02:39 ftobin Exp $
+#
 
 use strict;
 use English;

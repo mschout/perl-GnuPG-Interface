@@ -1,3 +1,35 @@
+2001-05-03 02:40  ftobin
+
+	* lib/GnuPG/Interface.pm: put in example of how to use wrap_call()
+
+2001-05-03 02:37  ftobin
+
+	* README: add footer stuff to readme
+
+2001-05-03 02:32  ftobin
+
+	* MANIFEST, NEWS, lib/GnuPG/Interface.pm, t/wrap_call.t: bump
+	version, add news, fix test
+
+2001-05-03 01:02  ftobin
+
+	* t/passphrase_handling.t: remove spuriuos backtick
+
+2001-05-03 01:00  ftobin
+
+	* lib/GnuPG/Interface.pm, t/clearsign.t, t/decrypt.t,
+	t/detach_sign.t, t/encrypt.t, t/encrypt_symmetrically.t,
+	t/export_keys.t, t/get_public_keys.t, t/get_secret_keys.t,
+	t/import_keys.t, t/list_public_keys.t, t/list_secret_keys.t,
+	t/list_sigs.t, t/passphrase_handling.t, t/sign.t,
+	t/sign_and_encrypt.t, t/verify.t: use waitpid instead of wait for
+	everything, and remove some deprecated uses of gnupg_command_args
+	in test cases
+
+2001-04-30 21:38  ftobin
+
+	* MANIFEST: add ComparablePrimaryKey
+
 2001-04-30 21:36  ftobin
 
 	* t/GnuPG/ComparablePrimaryKey.pm: forgot to add this before

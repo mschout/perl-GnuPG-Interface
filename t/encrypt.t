@@ -1,4 +1,7 @@
 #!/usr/bin/perl -w
+#
+# $Id: encrypt.t,v 1.4 2001/05/03 06:00:06 ftobin Exp $
+#
 
 use strict;
 use English;
@@ -15,11 +18,11 @@ TEST
     $gnupg->options->clear_meta_recipients_keys();
     $gnupg->options->push_recipients( '0x2E854A6B' );
     
-    $gnupg->encrypt( handles => $handles );
+    my $pid = $gnupg->encrypt( handles => $handles );
     
     print $stdin @{ $texts{plain}->data() };
     close $stdin;
-    wait;
+    waitpid $pid, 0;
     
     return $CHILD_ERROR == 0;
 };
@@ -34,11 +37,11 @@ TEST
     $gnupg->options->clear_meta_recipients_keys();
     $gnupg->options->push_meta_recipients_keys( @keys );
     
-    $gnupg->encrypt( handles => $handles );
+    my $pid = $gnupg->encrypt( handles => $handles );
     
     print $stdin @{ $texts{plain}->data() };
     close $stdin;
-    wait;
+    waitpid $pid,  0;
     
     return $CHILD_ERROR == 0;
 };
@@ -54,9 +57,9 @@ TEST
     
     $handles->stdin( $texts{plain}->fh() );
     $handles->options( 'stdin' )->{direct} = 1;
-    $gnupg->encrypt( handles => $handles );
+    my $pid = $gnupg->encrypt( handles => $handles );
     
-    wait;
+    waitpid $pid, 0;
     
     return $CHILD_ERROR == 0;
 };
