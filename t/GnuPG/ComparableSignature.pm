@@ -10,7 +10,7 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: ComparableSignature.pm,v 1.1 2001/04/28 04:01:04 ftobin Exp $
+#  $Id: ComparableSignature.pm,v 1.2 2001/04/30 00:09:26 ftobin Exp $
 #
 
 package GnuPG::ComparableSignature;
@@ -25,15 +25,16 @@ sub compare
 {
     my ( $self, $other ) = @_;
     
-    my @comparison_pairs =
-      ( $self->algo_num(),               $other->algo_num(),
-        $self->hex_id(),                 $other->hex_id(),
-        $self->date_string(),            $other->date_string(),
-      );
+    my @compared_fields = qw( algo_num hex_id date_string );
     
-    for ( my $i = 0; $i < @comparison_pairs; $i+=2 )
+    foreach my $field ( @compared_fields )
     {
-	return 0 if $comparison_pairs[$i] ne $comparison_pairs[$i+1];
+	my $f1 = $self->$field();
+	my $f2 = $other->$field();
+	
+	# don't test for definedness because
+	# all fields should be defined
+	return 0 unless $self->$field() eq $other->$field();
     }
     
     return 1;

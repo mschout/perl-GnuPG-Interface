@@ -10,7 +10,7 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: Key.pm,v 1.7 2001/04/28 04:01:04 ftobin Exp $
+#  $Id: Key.pm,v 1.8 2001/04/30 00:09:26 ftobin Exp $
 #
 
 package GnuPG::Key;
@@ -20,8 +20,8 @@ use strict;
 use Class::MethodMaker
   get_set       => [ qw( length      algo_num     hex_id    hex_data
 			 creation_date_string     expiration_date_string
+			 fingerprint
 		       ) ],
-  object        => [ qw( GnuPG::Fingerprint  fingerprint ) ],
   new_hash_init => 'new',
   new_hash_init => 'hash_init';
 

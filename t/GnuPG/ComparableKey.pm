@@ -10,7 +10,7 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: ComparableKey.pm,v 1.1 2001/04/28 04:01:04 ftobin Exp $
+#  $Id: ComparableKey.pm,v 1.2 2001/04/30 00:09:26 ftobin Exp $
 #
 
 package GnuPG::ComparableKey;
@@ -25,23 +25,19 @@ sub compare
 {
     my ( $self, $other, $deep ) = @_;
     
-    my @comparison_pairs = 
-      ( $self->length(),                 $other->length(),
-        $self->algo_num(),               $other->algo_num(),
-        $self->hex_id(),                 $other->hex_id(),
-	$self->creation_date_string(),   $other->creation_date_string(),
-        # this is taken out because GnuPG for some reason has decided
-	# to not make expiration date listings the same for subkeys
-	# in public-key mode and private-key mode
-	#$self->expiration_date_string(), $other->expiration_date_string(),
-      );
+    # expiration_date_string was taken out of the following
+    # list because there is a bug in the listing of
+    # expiration dates in 1.0.5
+    my @comparison_fields
+      = qw( length algo_num hex_id
+	    creation_date_string
+	  );
     
-    for ( my $i = 0; $i < @comparison_pairs; $i += 2 )
+    foreach my $field ( @comparison_fields )
     {
-	return 0 unless ( defined $comparison_pairs[$i]
-			  and defined $comparison_pairs[$i]
-			);
-	return 0 if $comparison_pairs[$i] ne $comparison_pairs[$i+1];
+	# don't test for definedness because
+	# all fields should be defined
+	return 0 unless $self->$field() eq $other->$field();
     }
     
     return $self->_deeply_compare( $other ) if $deep;

@@ -10,6 +10,7 @@ lib/GnuPG/Handles.pm
 lib/GnuPG/Interface.pm
 lib/GnuPG/Key.pm
 lib/GnuPG/Options.pm
+lib/GnuPG/PrimaryKey.pm
 lib/GnuPG/PublicKey.pm
 lib/GnuPG/UserId.pm
 lib/GnuPG/SecretKey.pm
@@ -17,13 +18,17 @@ lib/GnuPG/Signature.pm
 lib/GnuPG/SubKey.pm
 t/GnuPG/ComparableFingerprint.pm
 t/GnuPG/ComparableKey.pm
+t/GnuPG/ComparablePrimaryKey.pm
 t/GnuPG/ComparablePublicKey.pm
 t/GnuPG/ComparableSecretKey.pm
 t/GnuPG/ComparableSignature.pm
 t/GnuPG/ComparableSubKey.pm
 t/GnuPG/ComparableUserId.pm
+t/Fingerprint.t
+t/Interface.t
 t/MyTest.pm
 t/MyTestSpecific.pm
+t/UserId.t
 t/clearsign.t
 t/decrypt.t
 t/detach_sign.t

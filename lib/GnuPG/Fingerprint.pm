@@ -10,7 +10,7 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: Fingerprint.pm,v 1.5 2001/04/28 04:01:04 ftobin Exp $
+#  $Id: Fingerprint.pm,v 1.7 2001/04/30 01:36:12 ftobin Exp $
 #
 
 package GnuPG::Fingerprint;
@@ -18,11 +18,18 @@ package GnuPG::Fingerprint;
 use strict;
 
 use Class::MethodMaker
-  get_set       => [ qw( hex_data ) ],
+  get_set       => [ qw( as_hex_string ) ],
   new_hash_init => 'new';
 
-1;
+# DEPRECATED
+sub hex_data
+{
+    my ( $self, $v ) = @_;
+    $self->as_hex_string( $v ) if defined $v;
+    return $self->as_hex_string();
+}
 
+1;
 
 __END__
 
@@ -33,7 +40,7 @@ GnuPG::Fingerprint - GnuPG Fingerprint Objects
 =head1 SYNOPSIS
 
   # assumes a GnuPG::Key in $key
-  my $fingerprint = $key->fingerprint->hex_data();
+  my $fingerprint = $key->fingerprint->as_hex_string();
 
 =head1 DESCRIPTION
 
@@ -68,9 +75,10 @@ Please read there for more information.
 
 =over 4
 
-=item hex_data
+=item as_hex_string
 
-This is the hex value of the fingerprint that the object embodies.
+This is the hex value of the fingerprint that the object embodies,
+in string format.
 
 =back
 

@@ -10,17 +10,19 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: ComparableSubKey.pm,v 1.1 2001/04/28 04:01:04 ftobin Exp $
+#  $Id: ComparableSubKey.pm,v 1.2 2001/04/30 00:09:26 ftobin Exp $
 #
 
 package GnuPG::ComparableSubKey;
 
 use strict;
-use vars qw( @ISA );
 use GnuPG::SubKey;
 use GnuPG::ComparableKey;
 use GnuPG::ComparableSignature;
 use GnuPG::ComparableFingerprint;
+use vars qw( @ISA );
+
+use Data::Dumper;
 
 push @ISA, 'GnuPG::SubKey', 'GnuPG::ComparableKey';
 
@@ -30,13 +32,25 @@ sub compare
     
     if ( $deep )
     {
-	bless $self->signature, 'GnuPG::ComparableSignature';
-	bless $self->fingerprint, 'GnuPG::ComparableFingerprint';
+	bless $self->signature, 'GnuPG::ComparableSignature'
+	  if $self->signature();
+	bless $self->fingerprint, 'GnuPG::ComparableFingerprint'
+	  if $self->fingerprint();
 	
-	return 0 unless
-	  ( $self->signature->compare( $other->signature )
-	    and $self->fingerprint->compare( $other->fingerprint() )
-	  );
+	foreach my $field ( qw( signature fingerprint ) )
+	{
+	    my $f1 = $self->$field();
+	    my $f2 = $other->$field();
+	    
+	    # if neither are filled in, don't compare this
+	    next if not $f1 or not $f2;
+	    
+	    # if one is filled in, but not the other
+	    # we say they are different
+	    return 0 if $f1 xor $f2;
+	    
+	    $f1->compare( $f2, 1 );
+	}
     }
     
     return $self->SUPER::compare( $other, $deep )

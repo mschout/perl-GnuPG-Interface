@@ -1,3 +1,54 @@
+2001-04-30 21:36  ftobin
+
+	* t/GnuPG/ComparablePrimaryKey.pm: forgot to add this before
+
+2001-04-30 21:34  ftobin
+
+	* NEWS, lib/GnuPG/Interface.pm: bump version
+
+2001-04-30 21:31  ftobin
+
+	* lib/GnuPG/PrimaryKey.pm: add SYNOPSIS to pod
+
+2001-04-30 21:27  ftobin
+
+	* MANIFEST: add t/Interface.t
+
+2001-04-30 00:03  ftobin
+
+	* lib/GnuPG/PrimaryKey.pm: forgot to add this file
+
+2001-04-29 21:04  ftobin
+
+	* t/Interface.t: has deprecation tests
+
+2001-04-29 21:04  ftobin
+
+	* NEWS, lib/GnuPG/Interface.pm: deprecate a bunch of gnupg_x in
+	favor of just x
+
+2001-04-29 20:36  ftobin
+
+	* MANIFEST, lib/GnuPG/Fingerprint.pm, lib/GnuPG/Interface.pm,
+	lib/GnuPG/UserId.pm, t/Fingerprint.t, t/UserId.t,
+	t/get_public_keys.t: deprecate some fields
+
+2001-04-29 19:09  ftobin
+
+	* lib/GnuPG/Fingerprint.pm, lib/GnuPG/Interface.pm,
+	lib/GnuPG/Key.pm, lib/GnuPG/PublicKey.pm, lib/GnuPG/SecretKey.pm,
+	lib/GnuPG/SubKey.pm, t/get_public_keys.t, t/get_secret_keys.t,
+	t/GnuPG/ComparableFingerprint.pm, t/GnuPG/ComparableKey.pm,
+	t/GnuPG/ComparablePublicKey.pm, t/GnuPG/ComparableSecretKey.pm,
+	t/GnuPG/ComparableSignature.pm, t/GnuPG/ComparableSubKey.pm:
+	GnuPG::SubKey's signature, and GnuPG::Key's fingerprint are not
+	auto-created anymore.  I just don't like doing it.
+	
+	Introduced GnuPG::PrimaryKey, the super-class for GnuPG::PublicKey
+	and GnuPG::SecretKey
+	
+	GnuPG::Fingerprint's primary data member is now named as_hex_string
+
 2001-04-27 23:51  ftobin
 
 	* Makefile.PL: update C::MM requirements

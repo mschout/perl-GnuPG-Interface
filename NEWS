@@ -1,3 +1,19 @@
+Noteworthy changes in 0.30
+-----------------------------------------------------------------
+
+    *	Re-worked inheritance tree so that GnuPG::SecretKey
+	and GnuPG::PublicKey are sub-classes of
+	newly-added GnuPG::PrimaryKey.
+
+    *	Tested with GnuPG 1.0.5.
+
+    *	GnuPG::Fingerprint deprecate hex_data(), in favor
+	of as_hex_string().
+
+    *	GnuPG::UserId deprecates user_id_string(), in favor
+	of as_string().
+
+
 Noteworthy changes in 0.20
 -----------------------------------------------------------------
 

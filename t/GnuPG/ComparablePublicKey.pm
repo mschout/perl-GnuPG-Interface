@@ -10,7 +10,7 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: ComparablePublicKey.pm,v 1.1 2001/04/28 04:01:04 ftobin Exp $
+#  $Id: ComparablePublicKey.pm,v 1.2 2001/04/30 00:09:26 ftobin Exp $
 #
 
 package GnuPG::ComparablePublicKey;
@@ -18,37 +18,8 @@ package GnuPG::ComparablePublicKey;
 use strict;
 use vars qw( @ISA );
 use GnuPG::PublicKey;
-use GnuPG::ComparableKey;
+use GnuPG::ComparablePrimaryKey;
 
-push @ISA, 'GnuPG::PublicKey', 'GnuPG::ComparableKey';
-
-sub _deeply_compare
-{
-    my ( $self, $other ) = @_;
-    
-    my @self_subkeys  = $self->subkeys();
-    my @other_subkeys = $other->subkeys();
-    
-    return 0 unless @self_subkeys == @other_subkeys;
-    
-    my $num_subkeys = @self_subkeys;
-    
-    for ( my $i = 0; $i < $num_subkeys; $i++ )
-    {
-	my $subkey1 = $self_subkeys[$i];
-	my $subkey2 = $other_subkeys[$i];
-	
-	bless $subkey1, 'GnuPG::ComparableSubKey';
-	
-	return 0 unless $subkey1->compare( $subkey2, 1 );
-    }
-    
-    
-    # don't compare user id's because their ordering
-    # is not necessarily deterministic
-    
-    return 1;
-}
-
+push @ISA, 'GnuPG::PublicKey', 'GnuPG::ComparablePrimaryKey';
 
 1;

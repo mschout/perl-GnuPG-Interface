@@ -10,7 +10,7 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: ComparableFingerprint.pm,v 1.1 2001/04/28 04:01:04 ftobin Exp $
+#  $Id: ComparableFingerprint.pm,v 1.2 2001/04/30 00:09:26 ftobin Exp $
 #
 
 package GnuPG::ComparableFingerprint;
@@ -25,7 +25,7 @@ sub compare
 {
     my ( $self, $other ) = @_;
     
-    return $self->hex_data() eq $other->hex_data();
+    return $self->as_hex_string() eq $other->as_hex_string();
 }
 
 1;

@@ -1,5 +1,5 @@
-#  SubKey.pm
-#    - providing an object-oriented approach to GnuPG sub keys
+#  PrimaryKey.pm
+#      - objectified GnuPG primary keys (can have subkeys)
 #
 #  Copyright (C) 2000 Frank J. Tobin <ftobin@uiuc.edu>
 #
@@ -10,19 +10,20 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: SubKey.pm,v 1.7 2001/04/30 00:09:26 ftobin Exp $
+#  $Id: PrimaryKey.pm,v 1.2 2001/05/01 02:31:31 ftobin Exp $
 #
 
-package GnuPG::SubKey;
+package GnuPG::PrimaryKey;
 
 use strict;
 use GnuPG::Key;
-
 use vars qw( @ISA );
+
 push @ISA, 'GnuPG::Key';
 
 use Class::MethodMaker
-  get_set => [ qw( validity   owner_trust  local_id  signature ) ];
+  list          => [ qw( user_ids   subkeys  ) ],
+  get_set       => [ qw( local_id   owner_trust ) ];
 
 1;
 
@@ -30,23 +31,28 @@ __END__
 
 =head1 NAME
 
-GnuPG::SubKey - GnuPG Sub Key objects
+GnuPG::PrimaryKey - GnuPG Primary Key Objects
 
 =head1 SYNOPSIS
 
-  # assumes a GnuPG::PublicKey object in $key
-  my @subkeys = $key->subkeys();
+  # assumes a GnuPG::Interface object in $gnupg
+  my @keys = $gnupg->get_public_keys( 'ftobin' );
 
-  # now GnuPG::SubKey objects are in @subkeys
+  # or
+
+  my @keys = $gnupg->get_secret_keys( 'ftobin' );
+
+  # now GnuPG::PrimaryKey objects are in @keys
 
 =head1 DESCRIPTION
 
-GnuPG::SubKey objects are generally instantiated
+GnuPG::PrimaryKey objects are generally instantiated
+as GnuPG::PublicKey or GnuPG::SecretKey objects
 through various methods of GnuPG::Interface.
-They embody various aspects of a GnuPG sub key.
+They embody various aspects of a GnuPG primary key.
 
 This package inherits data members and object methods
-from GnuPG::Key, which are not described here, but rather
+from GnuPG::Key, which is not described here, but rather
 in L<GnuPG::Key>.
 
 =head1 OBJECT DATA MEMBERS
@@ -58,11 +64,13 @@ Please read there for more information.
 
 =over 4
 
-=item validity
+=item user_ids
 
-A scalar holding the value GnuPG reports for the trust of authenticity
-(a.k.a.) validity of a key.
-See GnuPG's DETAILS file for details.
+A list of GnuPG::UserId objects associated with this key.
+
+=item subkeys
+
+A list of GnuPG::SubKey objects associated with this key.
 
 =item local_id
 
@@ -73,17 +81,13 @@ GnuPG's local id for the key.
 The scalar value GnuPG reports as the ownertrust for this key.
 See GnuPG's DETAILS file for details.
 
-=item signature
-
-A GnuPG::Signature object holding the representation of the
-signature on this key.
-
 =back
 
 =head1 SEE ALSO
 
 L<GnuPG::Key>,
-L<GnuPG::Signature>,
+L<GnuPG::UserId>,
+L<GnuPG::SubKey>,
 L<Class::MethodMaker>
 
 =cut

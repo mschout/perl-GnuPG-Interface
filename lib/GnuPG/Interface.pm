@@ -10,7 +10,7 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: Interface.pm,v 1.30 2001/04/28 04:45:43 ftobin Exp $
+#  $Id: Interface.pm,v 1.34 2001/05/01 02:34:30 ftobin Exp $
 #
 
 package GnuPG::Interface;
@@ -25,29 +25,31 @@ use AutoLoader 'AUTOLOAD';
 use Class::Struct;
 use IO::Handle;
 
-# Paul Walmsley says:
-# Perl 5.6's POSIX.pm has a typo in it that prevents us from
-# importing STDERR_FILENO. So we resort to requiring it.
-use POSIX; 
-
 use GnuPG::Options;
 use GnuPG::Handles;
 
-$VERSION = '0.20';
+$VERSION = '0.30';
 
 use Class::MethodMaker
-  get_set         => [ qw( gnupg_call  passphrase ) ],
-  object          => [ 'GnuPG::Options', 'options' ],
+  get_set         => [ qw( call  passphrase ) ],
+  object          => [ qw( GnuPG::Options  options ) ],
   new_with_init   => 'new',
   new_hash_init   => 'hash_init';
 
+# deprecated!
+sub gnupg_call
+{
+    my ( $self, $v ) = @_;
+    $self->call( $v ) if defined $v;
+    return $self->call();
+}
 
 
 sub init( $% )
 {
     my ( $self, %args ) = @_;
     
-    $self->hash_init( gnupg_call => 'gpg' ),
+    $self->hash_init( call => 'gpg' ),
     $self->hash_init( %args );
 }
 
@@ -112,19 +114,19 @@ sub fork_attach_exec( $% )
 {
     my ( $self, %args ) = @_;
     
-    my $handles = $args{handles} or croak 'no handles passed';
+    my $handles = $args{handles} or croak 'no GnuPG::Handles passed';
     
-    my @gnupg_commands = $args{gnupg_commands}
-    ? @{ $args{gnupg_commands} } : () or croak 'no gnupg command passed';
+    my @commands = $args{commands}
+    ? @{ $args{commands} } : () or croak 'no gnupg command passed';
     
-    my @gnupg_command_args = ();
-    if ( ref $args{gnupg_command_args} )
+    my @command_args = ();
+    if ( ref $args{command_args} )
     {
-	@gnupg_command_args = @{ $args{gnupg_command_args } };
+	@command_args = @{ $args{command_args} };
     }
-    elsif ( $args{gnupg_command_args } )
+    elsif ( $args{command_args } )
     {
-	@gnupg_command_args = ( $args{gnupg_command_args} );
+	@command_args = ( $args{command_args} );
     }
     
     my %fhs;
@@ -151,7 +153,6 @@ sub fork_attach_exec( $% )
     
     # Below is code derived heavily from
     # Marc Horowitz's IPC::Open3, a base Perl module
-    
     foreach my $fh_name ( keys %fhs )
     {
 	my $entry = $fhs{$fh_name};
@@ -200,15 +201,17 @@ sub fork_attach_exec( $% )
     
     if ( $pid == 0 )		# child
     {
-	no strict 'refs';
-	
 	# these are for safety later to help lessen autovifying,
 	# speed things up, and make the code smaller
 	my $stdin       = $fhs{stdin};
 	my $stdout      = $fhs{stdout};
 	my $stderr      = $fhs{stderr};
 	
-	# from Paul Walmsley
+	# Paul Walmsley says:
+	# Perl 5.6's POSIX.pm has a typo in it that prevents us from
+	# importing STDERR_FILENO. So we resort to requiring it.
+	require POSIX; 
+
 	my $standard_out = IO::Handle->new_from_fd( &POSIX::STDOUT_FILENO, 'w' );
 	my $standard_in  = IO::Handle->new_from_fd( &POSIX::STDIN_FILENO,  'r' );
 	
@@ -313,8 +316,8 @@ sub fork_attach_exec( $% )
 	}
 	
 	
-	my @command = ( $self->gnupg_call(), $self->options->get_args(),
-			@gnupg_commands,     @gnupg_command_args );
+	my @command = ( $self->call(), $self->options->get_args(),
+			@commands,     @command_args );
 	
 	exec @command or die "exec() error: $ERRNO";
     }
@@ -372,8 +375,8 @@ sub get_public_keys ( $@ )
 {
     my ( $self, @key_ids ) = @_;
     
-    return $self->get_keys( gnupg_commands     => [  '--list-public-keys' ],
-			    gnupg_command_args => [ @key_ids ],
+    return $self->get_keys( commands     => [  '--list-public-keys' ],
+			    command_args => [ @key_ids ],
 			  );
 }
 
@@ -383,8 +386,8 @@ sub get_secret_keys ( $@ )
 {
     my ( $self, @key_ids ) = @_;
     
-    return $self->get_keys( gnupg_commands     => [ '--list-secret-keys' ],
-			    gnupg_command_args => [ @key_ids ],
+    return $self->get_keys( commands     => [ '--list-secret-keys' ],
+			    command_args => [ @key_ids ],
 			  );
 }
 
@@ -394,8 +397,8 @@ sub get_public_keys_with_sigs ( $@ )
 {
     my ( $self, @key_ids ) = @_;
 
-    return $self->get_keys( gnupg_commands     => [ '--list-sigs' ],
-			    gnupg_command_args => [ @key_ids ],
+    return $self->get_keys( commands     => [ '--list-sigs' ],
+			    command_args => [ @key_ids ],
 			  );
 }
 
@@ -471,16 +474,17 @@ sub get_keys
 	      );
 	    
 	    $current_signed_item = GnuPG::UserId->new
-	      ( validity        => $user_id_validity,
-		user_id_string  => $user_id_string,
+	      ( validity   => $user_id_validity,
+		as_string  => $user_id_string,
 	      );
 	    
 	    $current_key->push_user_ids( $current_signed_item );
 	}
 	elsif ( $record_type eq 'fpr' )
 	{
-	    my $fingerprint = $fields[9];
-	    $current_fingerprinted_key->fingerprint->hex_data( $fingerprint );
+	    my $hex = $fields[9];
+	    my $f = GnuPG::Fingerprint->new( as_hex_string => $hex );
+	    $current_fingerprinted_key->fingerprint( $f );
 	}
 	elsif ( $record_type eq 'sig' )
 	{
@@ -489,10 +493,10 @@ sub get_keys
 	      = @fields[3..5,9];
 	    
 	    my $signature = GnuPG::Signature->new
-	      ( algo_num              => $algo_num,
-		hex_id                => $hex_key_id,
-		date_string           => $signature_date_string,
-		user_id_string        => $user_id_string,
+	      ( algo_num        => $algo_num,
+		hex_id          => $hex_key_id,
+		date_string     => $signature_date_string,
+		user_id_string  => $user_id_string,
 	      );
 	    
 	    if ( $current_signed_item->isa( 'GnuPG::UserId' ) )
@@ -513,8 +517,8 @@ sub get_keys
 	    my ( $validity, $user_id_string ) = @fields[1,9];
 	    
 	    $current_signed_item = GnuPG::UserId->new
-	      ( validity       => $validity,
-		user_id_string => $user_id_string,
+	      ( validity  => $validity,
+		as_string => $user_id_string,
 	      );
 	    
 	    $current_key->push_user_ids( $current_signed_item );
@@ -563,7 +567,7 @@ sub list_public_keys
 {
     my ( $self, %args ) = @_;
     return $self->wrap_call( %args,
-			     gnupg_commands => [ '--list-public-keys' ],
+			     commands => [ '--list-public-keys' ],
 			   );
 }
 
@@ -572,7 +576,7 @@ sub list_sigs
 {
     my ( $self, %args ) = @_;
     return $self->wrap_call( %args,
-			     gnupg_commands => [ '--list-sigs' ],
+			     commands => [ '--list-sigs' ],
 			   );
 }
 
@@ -582,7 +586,7 @@ sub list_secret_keys
 {
     my ( $self, %args ) = @_;
     return $self->wrap_call( %args,
-			     gnupg_commands => [ '--list-secret-keys' ],
+			     commands => [ '--list-secret-keys' ],
 			   );
 }
 
@@ -592,7 +596,7 @@ sub encrypt( $% )
 {
     my ( $self, %args ) = @_;
     return $self->wrap_call( %args,
-			     gnupg_commands => [ '--encrypt' ] );
+			     commands => [ '--encrypt' ] );
 }
 
 
@@ -601,7 +605,7 @@ sub encrypt_symmetrically( $% )
 {
     my ( $self, %args ) = @_;
     return $self->wrap_call( %args,
-			     gnupg_commands => [ '--symmetric' ] );
+			     commands => [ '--symmetric' ] );
 }
 
 
@@ -610,7 +614,7 @@ sub sign( $% )
 {
     my ( $self, %args ) = @_;
     return $self->wrap_call( %args,
-			     gnupg_commands => [ '--sign' ] );
+			     commands => [ '--sign' ] );
 }
 
 
@@ -619,7 +623,7 @@ sub clearsign( $% )
 {
     my ( $self, %args ) = @_;
     return $self->wrap_call( %args,,
-			     gnupg_commands => [ '--clearsign' ] );
+			     commands => [ '--clearsign' ] );
 }
 
 
@@ -627,7 +631,7 @@ sub detach_sign( $% )
 {
     my ( $self, %args ) = @_;
     return $self->wrap_call( %args,
-			     gnupg_commands => [ '--detach-sign' ] );
+			     commands => [ '--detach-sign' ] );
 }
 
 
@@ -636,7 +640,7 @@ sub sign_and_encrypt( $% )
 {
     my ( $self, %args ) = @_;
     return $self->wrap_call( %args,
-			     gnupg_commands => [ '--sign',
+			     commands => [ '--sign',
 						 '--encrypt' ] );
 }
 
@@ -646,7 +650,7 @@ sub decrypt( $% )
 {
     my ( $self, %args ) = @_;
     return $self->wrap_call( %args,
-			     gnupg_commands => [ '--decrypt' ] );
+			     commands => [ '--decrypt' ] );
 }
 
 
@@ -655,7 +659,7 @@ sub verify( $% )
 {
     my ( $self, %args ) = @_;
     return $self->wrap_call( %args,
-			     gnupg_commands => [ '--verify' ] );
+			     commands => [ '--verify' ] );
 }
 
 
@@ -664,8 +668,8 @@ sub import_keys( $% )
 {
     my ( $self, %args ) = @_;
     return $self->wrap_call( %args,
-			     gnupg_commands      => [ '--import' ],
-			     gnupg_command_args  => [ '-' ] );
+			     commands      => [ '--import' ],
+			     command_args  => [ '-' ] );
 }
 
 
@@ -674,7 +678,7 @@ sub export_keys( $% )
 {
     my ( $self, %args ) = @_;
     return $self->wrap_call( %args,
-			     gnupg_commands => [ '--export' ] );
+			     commands => [ '--export' ] );
 }
 
 
@@ -682,7 +686,7 @@ sub recv_keys( $% )
 {
     my ( $self, %args ) = @_;
     return $self->wrap_call( %args,
-			     gnupg_commands => [ '--recv-keys' ] );
+			     commands => [ '--recv-keys' ] );
 }
 
 
@@ -691,7 +695,7 @@ sub send_keys( $% )
 {
     my ( $self, %args ) = @_;
     return $self->wrap_call( %args,
-			     gnupg_commands => [ '--send-keys' ] );
+			     commands => [ '--send-keys' ] );
 }
 
 
@@ -889,7 +893,7 @@ These methods each correspond directly to or are very similar
 to a GnuPG command described in L<gpg>.  Each of these methods
 takes a hash, which currently must contain a key of B<handles>
 which has the value of a GnuPG::Handles object.
-Another optional key is B<gnupg_command_args> which should have the value of an
+Another optional key is B<command_args> which should have the value of an
 array reference; these arguments will be passed to GnuPG as command arguments.
 These command arguments are used for such things as determining the keys to
 list in the B<export_keys> method.  I<Please note that GnuPG command arguments
@@ -984,7 +988,7 @@ at least the following keys:
 
 =over 6
 
-=item gnupg_command
+=item command
 
 The value of this key in the hash must be a reference to a a list of
 commands for GnuPG, such as C<[ qw( --encrypt --sign ) ]>.
@@ -1000,7 +1004,7 @@ The following keys are optional.
 
 =over 6
 
-=item gnupg_command_args
+=item command_args
 
 As with other GnuPG::Interface methods, the value in hash
 for this key must be a reference to a list of arguments
@@ -1018,7 +1022,7 @@ Please read there for more information.
 
 =over 4
 
-=item gnupg_call
+=item call
 
 This defines the call made to invoke GnuPG.  Defaults to 'gpg'; this
 should be changed if 'gpg' is not in your path, or there is a different
@@ -1180,10 +1184,10 @@ The following setup can be done before any of the following examples:
   my @ids = [ 'ftobin', '0xABCD1234' ];
 
   # this time we need to specify something for
-  # gnupg_command_args because --list-public-keys takes
+  # command_args because --list-public-keys takes
   # search ids as arguments
-  $gnupg->list_public_keys( handles            => $handles,
-                            gnupg_command_args => [ @ids ]  );
+  $gnupg->list_public_keys( handles      => $handles,
+                            command_args => [ @ids ]  );
   
    wait;
 

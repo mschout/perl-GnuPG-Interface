@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: get_secret_keys.t,v 1.7 2001/04/28 04:01:04 ftobin Exp $
+# $Id: get_secret_keys.t,v 1.8 2001/04/30 00:09:26 ftobin Exp $
 
 use strict;
 use English;
@@ -8,7 +8,6 @@ use English;
 use lib './t';
 use MyTest;
 use MyTestSpecific;
-use Data::Dumper;
 
 use GnuPG::ComparableSecretKey;
 
@@ -33,8 +32,11 @@ TEST
 	owner_trust            => 'f',
       );
     
-    $handmade_key->fingerprint->hex_data
-      ( '93AFC4B1B0288A104996B44253AE596EF950DA9C' );
+    $handmade_key->fingerprint
+      ( GnuPG::Fingerprint->new( as_hex_string => 
+				 '93AFC4B1B0288A104996B44253AE596EF950DA9C',
+			       )
+      );
     
     my $subkey = GnuPG::SubKey->new
       ( validity                 => 'u',
@@ -45,8 +47,11 @@ TEST
 	expiration_date_string   => '2002-02-05',
       );
     
-    $subkey->fingerprint->hex_data
-      ( '7466B7E98C4CCB64C2CE738BADB99D9C2E854A6B' );
+    $subkey->fingerprint
+      ( GnuPG::Fingerprint->new( as_hex_string =>
+				 '7466B7E98C4CCB64C2CE738BADB99D9C2E854A6B',
+			       )
+      );
     
     $handmade_key->push_subkeys( $subkey );
     

@@ -10,7 +10,7 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: UserId.pm,v 1.5 2001/04/28 04:01:04 ftobin Exp $
+#  $Id: UserId.pm,v 1.6 2001/04/30 01:36:12 ftobin Exp $
 #
 
 package GnuPG::UserId;
@@ -18,9 +18,17 @@ package GnuPG::UserId;
 use strict;
 
 use Class::MethodMaker
-  get_set       => [ qw( validity user_id_string ) ],
+  get_set       => [ qw( validity as_string ) ],
   list          => [ qw( signatures ) ],
   new_hash_init => 'new';
+
+# DEPRECATED
+sub user_id_string
+{
+    my ( $self, $v ) = @_;
+    $self->as_string( $v ) if defined $v;
+    return $self->as_string();
+}
 
 1;
 
@@ -33,7 +41,7 @@ GnuPG::UserId - GnuPG User ID Objects
 =head1 SYNOPSIS
 
   # assumes a GnuPG::PublicKey object in $publickey
-  my $first_userid_string = $publickey->user_ids_ref->[0]->user_id_string;
+  my $user_id = $publickey->user_ids_ref->[0]->as_string;
 
 =head1 DESCRIPTION
 
@@ -63,7 +71,7 @@ Please read there for more information.
 
 =over 4
 
-=item user_id_string
+=item as_string
 
 A string of the user id.
 
