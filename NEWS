@@ -1,3 +1,20 @@
+Noteworthy changes in 0.20
+-----------------------------------------------------------------
+
+    *	Fixes for running under Perl 5.6.0
+	(stdin, stdout, stderr filehandling changed).
+	Thanks to Paul Walmsley, the_shag@users.sourceforge.net
+
+    *	Fix testing so that it works with GnuPG 1.0.4h.
+
+    *	Move a lot of testing code from inside the code
+	to outside, so that it doesn't need to be loaded
+	along with normal usage.  This might help speed.
+
+    *	License is now the same terms as perl itself.
+
+    *	Don't ship with Class::MethodMaker
+
 Noteworthy changes in 0.11
 -----------------------------------------------------------------
 

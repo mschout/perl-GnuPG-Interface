@@ -3,28 +3,21 @@
 #
 #  Copyright (C) 2000 Frank J. Tobin <ftobin@uiuc.edu>
 #
-#  This program is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2 of the License, or
-#  (at your option) any later version.
+#  This module is free software; you can redistribute it and/or modify it
+#  under the same terms as Perl itself.
 #
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, visit the following URL:
-#  http://www.gnu.org
-#
-#  $Id: MyTestSpecific.pm,v 1.4 2000/07/23 01:46:04 ftobin Exp $
+#  $Id: MyTestSpecific.pm,v 1.6 2001/04/28 00:58:04 ftobin Exp $
 #
 
 use strict;
 use English;
-use Symbol;
 use Fatal qw/ open close /;
 use IO::File;
+use IO::Handle;
 use IO::Seekable;
 use File::Compare;
 use Exporter;
@@ -90,7 +83,7 @@ sub reset_handles
 {
     foreach ( $stdin, $stdout, $stderr )
     {
-	$_ = gensym;
+	$_ = IO::Handle->new();
     }
     
     $handles = GnuPG::Handles->new

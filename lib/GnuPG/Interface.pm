@@ -3,21 +3,14 @@
 #
 #  Copyright (C) 2000 Frank J. Tobin <ftobin@uiuc.edu>
 #
-#  This program is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2 of the License, or
-#  (at your option) any later version.
+#  This module is free software; you can redistribute it and/or modify it
+#  under the same terms as Perl itself.
 #
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, visit the following URL:
-#  http://www.gnu.org
-#
-#  $Id: Interface.pm,v 1.25 2000/08/04 04:42:17 ftobin Exp $
+#  $Id: Interface.pm,v 1.30 2001/04/28 04:45:43 ftobin Exp $
 #
 
 package GnuPG::Interface;
@@ -25,17 +18,22 @@ package GnuPG::Interface;
 use strict;
 use English;
 use Carp;
-use Symbol;
 use Fcntl;
-use vars qw( $VERSION @ISA );
+use vars qw( $VERSION );
 use Fatal qw( open close pipe fcntl );
 use AutoLoader 'AUTOLOAD';
 use Class::Struct;
+use IO::Handle;
+
+# Paul Walmsley says:
+# Perl 5.6's POSIX.pm has a typo in it that prevents us from
+# importing STDERR_FILENO. So we resort to requiring it.
+use POSIX; 
 
 use GnuPG::Options;
 use GnuPG::Handles;
 
-$VERSION = '0.11';
+$VERSION = '0.20';
 
 use Class::MethodMaker
   get_set         => [ qw( gnupg_call  passphrase ) ],
@@ -86,7 +84,7 @@ sub wrap_call( $% )
     
     if ( $needs_passphrase_handled_for_him )
     {
-	$handles->passphrase( gensym );
+	$handles->passphrase( IO::Handle->new() );
     }
     
     my $pid = $self->fork_attach_exec( %args );
@@ -172,7 +170,7 @@ sub fork_attach_exec( $% )
     
     foreach my $fh_name ( keys %fhs )
     {
-	$fhs{$fh_name}->child_end( gensym );
+	$fhs{$fh_name}->child_end( IO::Handle->new() );
     }
     
     foreach my $fh_name ( keys %fhs )
@@ -210,43 +208,50 @@ sub fork_attach_exec( $% )
 	my $stdout      = $fhs{stdout};
 	my $stderr      = $fhs{stderr};
 	
+	# from Paul Walmsley
+	my $standard_out = IO::Handle->new_from_fd( &POSIX::STDOUT_FILENO, 'w' );
+	my $standard_in  = IO::Handle->new_from_fd( &POSIX::STDIN_FILENO,  'r' );
+	
+	# Paul Walmsley says:
+	# this mess is due to a typo in POSIX.pm on Perl 5.6
+	my $stderr_fd = eval { &POSIX::STDERR_FILENO };
+	$stderr_fd = 2 unless defined $stderr_fd;
+	my $standard_err = IO::Handle->new_from_fd ($stderr_fd, 'w');
+	
 	# If she wants to dup the kid's stderr onto her stdout I need to
 	# save a copy of her stdout before I put something else there.
 	if ( $stdout->parent_end() ne $stderr->parent_end()
 	     and $stderr->direct()
-	     and my_fileno( $stderr->parent_end() ) == my_fileno( \*STDOUT ) )
+	     and my_fileno( $stderr->parent_end() ) == my_fileno( $standard_out ) )
 	{
-	    my $tmp = gensym;
+	    my $tmp = IO::Handle->new();
 	    open $tmp, '>&' . my_fileno( $stderr->parent_end() );
 	    $stderr->parent_end( $tmp );
 	}
 	
-	
 	if ( $stdin->direct() )
 	{
-	    open STDIN, '<&' . my_fileno( $stdin->parent_end() )
+	    open $standard_in, '<&' . my_fileno( $stdin->parent_end() )
 	      unless
-		my_fileno( \*STDIN ) == my_fileno( $stdin->parent_end() );
+		my_fileno( $standard_in ) == my_fileno( $stdin->parent_end() );
 	}
 	else
 	{
 	    close $stdin->parent_end();
-	    open STDIN, '<&=' . my_fileno( $stdin->child_end() );
+	    open $standard_in, '<&=' . my_fileno( $stdin->child_end() );
 	}
-	
 	
 	if ( $stdout->direct() )
 	{
-	    open STDOUT, '>&' . my_fileno( $stdout->parent_end() )
+	    open $standard_out, '>&' . my_fileno( $stdout->parent_end() )
 	      unless
-		my_fileno( \*STDOUT ) == my_fileno( $stdout->parent_end() );
+		my_fileno( $standard_out ) == my_fileno( $stdout->parent_end() );
 	}
 	else
 	{
 	    close $stdout->parent_end();
-	    open STDOUT, '>&=' . my_fileno( $stdout->child_end() );
+	    open $standard_out, '>&=' . my_fileno( $stdout->child_end() );
 	}
-	
 	
 	if ( $stdout->parent_end() ne $stderr->parent_end() )
 	{
@@ -255,21 +260,21 @@ sub fork_attach_exec( $% )
 	    # (from the special case above).
 	    if ( $stderr->direct() )
 	    {
-		open STDERR, '>&' . my_fileno( $stderr->parent_end() )
+		open $standard_err, '>&' . my_fileno( $stderr->parent_end() )
 		  unless
-		    my_fileno( \*STDERR )
+		    my_fileno( $standard_err )
 		      == my_fileno( $stderr->parent_end() );
 	    }
 	    else
 	    {
 		close $stderr->parent_end();
-		open STDERR, '>&=' . my_fileno( $stderr->child_end() );
+		open $standard_err, '>&=' . my_fileno( $stderr->child_end() );
 	    }
 	}
 	else
 	{
-	    open STDERR, '>&STDOUT'
-	      unless my_fileno( \*STDERR ) == my_fileno( \*STDOUT );
+	    open $standard_err, '>&STDOUT'
+	      unless my_fileno( $standard_err ) == my_fileno( $standard_out );
 	}
 	
 	foreach my $fh_name ( keys %fhs )
@@ -408,8 +413,8 @@ sub get_keys
 				     '--with-fingerprint',
 				   );
     
-    my $stdin  = gensym;
-    my $stdout = gensym;
+    my $stdin  = IO::Handle->new();
+    my $stdout = IO::Handle->new();
     
     my $handles = GnuPG::Handles->new( stdin  => $stdin,
 				       stdout => $stdout,
@@ -431,8 +436,9 @@ sub get_keys
     require GnuPG::UserId; 
     require GnuPG::Signature;
     
-    while ( my $line = <$stdout> )
+    while ( <$stdout> )
     {
+	my $line = $_;
 	chomp $line;
 	my @fields = split ':', $line;
 	next unless @fields > 3;
@@ -486,7 +492,7 @@ sub get_keys
 	      ( algo_num              => $algo_num,
 		hex_id                => $hex_key_id,
 		date_string           => $signature_date_string,
-		user_id_string        => $user_id_string
+		user_id_string        => $user_id_string,
 	      );
 	    
 	    if ( $current_signed_item->isa( 'GnuPG::UserId' ) )
@@ -612,8 +618,7 @@ sub sign( $% )
 sub clearsign( $% )
 {
     my ( $self, %args ) = @_;
-    die "humph" unless keys %args;
-    return $self->wrap_call( handles => $args{handles},
+    return $self->wrap_call( %args,,
 			     gnupg_commands => [ '--clearsign' ] );
 }
 
@@ -701,10 +706,10 @@ sub test_default_key_passphrase()
     croak 'No passphrase defined to test!'
       unless defined $self->passphrase();
     
-    my $stdin       = gensym;
-    my $stdout      = gensym;
-    my $stderr      = gensym;
-    my $status      = gensym;
+    my $stdin       = IO::Handle->new();
+    my $stdout      = IO::Handle->new();
+    my $stderr      = IO::Handle->new();
+    my $status      = IO::Handle->new();
     
     my $handles = GnuPG::Handles->new
       ( stdin    => $stdin,
@@ -786,7 +791,7 @@ GnuPG::Interface - Perl interface to GnuPG
 
 =head1 DESCRIPTION
 
-GnuPG::Interface and it's associated modules are designed to
+GnuPG::Interface and its associated modules are designed to
 provide an object-oriented method for interacting with GnuPG,
 being able to perform functions such as but not limited
 to encrypting, signing,
@@ -811,9 +816,9 @@ and L<perlipc/"Bidirectional Communication with Another Process">,
 and that users of this package
 need to understand how to use this method because this package
 does not abstract these methods for the user greatly.
-processes using these methods.  This package is not designed
-to abstract this away (partly for security purposes) but rather
-to simply creating a 'proper' call to GnuPG, and to implement
+This package is not designed
+to abstract this away entirely (partly for security purposes), but rather
+to simply help create 'proper', clean calls to GnuPG, and to implement
 key-listing parsing.
 Please see L<perlipc/"Bidirectional Communication with Another Process">
 to learn how to deal with these methods.
@@ -906,7 +911,7 @@ B<passphrase-fd> respectively.
 This tying of handles of similar to the process
 done in I<IPC::Open3>.
 
-If you want the GnuPG process read or write directly to an already-opened
+If you want the GnuPG process to read or write directly to an already-opened
 filehandle, you cannot do this via the normal I<IPC::Open3> mechanisms.
 In order to accomplish this, set the appropriate B<handles> data member
 to the already-opened filehandle, and then set the option B<direct> to be true
@@ -963,6 +968,47 @@ key specified in the B<options> data member.
 
 =back
 
+=head1 Invoking GnuPG with a custom call
+
+GnuPG::Interface attempts to cover a lot of the commands
+of GnuPG that one would want to perform; however, there may be a lot
+more calls that GnuPG is and will be capable of, so a generic command
+interface is provided, C<wrap_call>.
+
+=over 4
+
+=item wrap_call( %args )
+
+Call GnuPG with a custom command.  The %args hash must contain
+at least the following keys:
+
+=over 6
+
+=item gnupg_command
+
+The value of this key in the hash must be a reference to a a list of
+commands for GnuPG, such as C<[ qw( --encrypt --sign ) ]>.
+
+=item handles
+
+As with most other GnuPG::Interface methods, B<handles>
+must be a GnuPG::Handles object.
+
+=back
+
+The following keys are optional.
+
+=over 6
+
+=item gnupg_command_args
+
+As with other GnuPG::Interface methods, the value in hash
+for this key must be a reference to a list of arguments
+to be passed to the GnuPG command, such as which
+keys to list in a key-listing.
+
+=back
+
 =head1 OBJECT DATA MEMBERS
 
 Note that these data members are interacted with via object methods
@@ -1014,7 +1060,9 @@ The following setup can be done before any of the following examples:
 
 =head2 Encrypting
 
-  # We'll let standard error to to our standard error
+  # We'll let the standard error of GnuPG pass through
+  # to our own standard error, by not creating
+  # a stderr-part of the $handles object.
   my ( $input, $output ) = ( IO::Handle->new(),
                              IO::Handle->new() );
 

@@ -2,7 +2,6 @@
 
 use strict;
 use English;
-use File::Compare;
 
 use lib './t';
 use MyTest;
@@ -60,15 +59,6 @@ TEST
 
 TEST
 {
-    my @files_to_test = ( 'test/secret-keys/2.0.test' );
-    
-    return file_match( $outfile, @files_to_test );
-};
-
-
-
-TEST
-{
     reset_handles();
     
     $handles->stdout( $texts{temp}->fh() );
@@ -82,12 +72,4 @@ TEST
     $outfile = $texts{temp}->fn();
     
     return $CHILD_ERROR == 0;
-};
- 
-
-TEST
-{
-    my @files_to_test = ( 'test/secret-keys/2.0.test' );
-    
-    return file_match( $outfile, @files_to_test );
 };

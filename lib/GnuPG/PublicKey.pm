@@ -3,21 +3,14 @@
 #
 #  Copyright (C) 2000 Frank J. Tobin <ftobin@uiuc.edu>
 #
-#  This program is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2 of the License, or
-#  (at your option) any later version.
+#  This module is free software; you can redistribute it and/or modify it
+#  under the same terms as Perl itself.
 #
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, visit the following URL:
-#  http://www.gnu.org
-#
-#  $Id: PublicKey.pm,v 1.3 2000/07/12 07:43:46 ftobin Exp $
+#  $Id: PublicKey.pm,v 1.6 2001/04/28 04:01:04 ftobin Exp $
 #
 
 package GnuPG::PublicKey;
@@ -31,44 +24,6 @@ push @ISA, 'GnuPG::Key';
 use Class::MethodMaker
   list          => [ qw( user_ids   subkeys  ) ],
   get_set       => [ qw( local_id   owner_trust ) ];
-
-
-sub deeply_compare
-{
-    my ( $self, $other ) = @_;
-    
-    return 0 unless $self->rigorously_compare( $other );
-    
-    my @self_subkeys  = $self->subkeys();
-    my @other_subkeys = $other->subkeys();
-    
-    return 0 unless @self_subkeys == @other_subkeys;
-    
-    my $num_subkeys = @self_subkeys;
-    
-    for ( my $i = 0; $i < $num_subkeys; $i++ )
-    {
-	return 0
-	  unless $self_subkeys[$i]->deeply_compare( $other_subkeys[$i] );
-    }
-    
-    
-    my @self_user_ids  = $self->user_ids();
-    my @other_user_ids = $other->user_ids();
-    
-    return 0 unless @self_user_ids == @other_user_ids;
-    
-    my $num_user_ids = @self_user_ids;
-    
-    for ( my $i = 0; $i < $num_user_ids; $i++ )
-    {
-	return 0
-	  unless $self_user_ids[$i]->deeply_compare( $other_user_ids[$i] );
-    }
-    
-    return $self->SUPER::deeply_compare( $other );
-}
-
 
 1;
 

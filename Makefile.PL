@@ -32,7 +32,7 @@ WriteMakefile
     VERSION_FROM => File::Spec->catfile( $gnupg_base, 'Interface.pm' ),
     
     PREREQ_PM    => {
-		     'Class::MethodMaker' => 0.96,
+		     'Class::MethodMaker' => 1.00,
 		    },
     
     PM           => { %pm_install_hash },
@@ -41,6 +41,6 @@ WriteMakefile
 		     COMPRESS => 'gzip',
 		     SUFFIX   => 'gz',
 		    },
-    
+    clean        => { FILES => "test/*-keys*/*.out test/random_seed test/trustdb.gpg test/temp" }
   );
 

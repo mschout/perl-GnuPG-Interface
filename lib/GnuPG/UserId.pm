@@ -3,21 +3,14 @@
 #
 #  Copyright (C) 2000 Frank J. Tobin <ftobin@uiuc.edu>
 #
-#  This program is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2 of the License, or
-#  (at your option) any later version.
+#  This module is free software; you can redistribute it and/or modify it
+#  under the same terms as Perl itself.
 #
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, visit the following URL:
-#  http://www.gnu.org
-#
-#  $Id: UserId.pm,v 1.3 2000/07/12 07:43:46 ftobin Exp $
+#  $Id: UserId.pm,v 1.5 2001/04/28 04:01:04 ftobin Exp $
 #
 
 package GnuPG::UserId;
@@ -29,41 +22,7 @@ use Class::MethodMaker
   list          => [ qw( signatures ) ],
   new_hash_init => 'new';
 
-sub rigorously_compare
-{
-    my ( $self, $other ) = @_;
-
-    return $self->user_id_string() eq $other->user_id_string();
-}
-
-
-sub deeply_compare
-{
-    my ( $self, $other ) = @_;
-    
-    return 0 unless
-      $self->rigorously_compare( $other );
-
-    my @self_signatures  = $self->signatures();
-    my @other_signatures = $other->signatures();
-    
-    return 0 unless @self_signatures == @other_signatures;
-    
-    my $num_sigs = @self_signatures;
-    
-    for ( my $i = 0; $i < $num_sigs; $i++ )
-    {
-	
-	return 0
-	  unless $self_signatures[$i]->deeply_compare( $other_signatures[$i] );
-    }
-
-    return 1;
-}
-
-
 1;
-
 
 __END__
 

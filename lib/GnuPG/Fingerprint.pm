@@ -3,21 +3,14 @@
 #
 #  Copyright (C) 2000 Frank J. Tobin <ftobin@uiuc.edu>
 #
-#  This program is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2 of the License, or
-#  (at your option) any later version.
+#  This module is free software; you can redistribute it and/or modify it
+#  under the same terms as Perl itself.
 #
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, visit the following URL:
-#  http://www.gnu.org
-#
-#  $Id: Fingerprint.pm,v 1.3 2000/07/12 07:43:46 ftobin Exp $
+#  $Id: Fingerprint.pm,v 1.5 2001/04/28 04:01:04 ftobin Exp $
 #
 
 package GnuPG::Fingerprint;
@@ -27,21 +20,6 @@ use strict;
 use Class::MethodMaker
   get_set       => [ qw( hex_data ) ],
   new_hash_init => 'new';
-
-sub rigorously_compare
-{
-    my ( $self, $other ) = @_;
-    
-    return $self->hex_data() eq $other->hex_data();
-}
-
-sub deeply_compare
-{
-    my ( $self, $other ) = @_;
-    
-    return $self->rigorously_compare( $other );
-}
-
 
 1;
 

@@ -15,7 +15,13 @@ lib/GnuPG/UserId.pm
 lib/GnuPG/SecretKey.pm
 lib/GnuPG/Signature.pm
 lib/GnuPG/SubKey.pm
-modules/Class-MethodMaker-0.96.tar.gz
+t/GnuPG/ComparableFingerprint.pm
+t/GnuPG/ComparableKey.pm
+t/GnuPG/ComparablePublicKey.pm
+t/GnuPG/ComparableSecretKey.pm
+t/GnuPG/ComparableSignature.pm
+t/GnuPG/ComparableSubKey.pm
+t/GnuPG/ComparableUserId.pm
 t/MyTest.pm
 t/MyTestSpecific.pm
 t/clearsign.t

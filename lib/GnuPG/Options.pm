@@ -3,21 +3,14 @@
 #
 #  Copyright (C) 2000 Frank J. Tobin <ftobin@uiuc.edu>
 #
-#  This program is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2 of the License, or
-#  (at your option) any later version.
+#  This module is free software; you can redistribute it and/or modify it
+#  under the same terms as Perl itself.
 #
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, visit the following URL:
-#  http://www.gnu.org
-#
-#  $Id: Options.pm,v 1.11 2000/07/27 16:26:49 ftobin Exp $
+#  $Id: Options.pm,v 1.13 2001/01/26 01:52:13 ftobin Exp $
 #
 
 package GnuPG::Options;
@@ -329,6 +322,10 @@ appropriate arguments having these keys as recipients.
 
 This list of keys of the type GnuPG::Key are used to generate the
 appropriate arguments having these keys as recipients.
+You probably want to have this list be of the inherited class
+GnuPG::SubKey, as in most instances, OpenPGP keypairs have
+the encyrption key as the subkey of the primary key, which is
+used for signing.
 
 =back
 

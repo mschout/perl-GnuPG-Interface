@@ -1,3 +1,71 @@
+2001-04-27 23:51  ftobin
+
+	* Makefile.PL: update C::MM requirements
+
+2001-04-27 23:49  ftobin
+
+	* MANIFEST, NEWS, README: don't ship with C::MM
+
+2001-04-27 23:45  ftobin
+
+	* MANIFEST, Makefile.PL, NEWS, THANKS, lib/GnuPG/Interface.pm: fix
+	SF Bug Id #229315
+
+2001-04-27 23:02  ftobin
+
+	* NEWS: update news concerning latest commits
+
+2001-04-27 23:01  ftobin
+
+	* lib/GnuPG/Fingerprint.pm, lib/GnuPG/Key.pm,
+	lib/GnuPG/PublicKey.pm, lib/GnuPG/SecretKey.pm,
+	lib/GnuPG/Signature.pm, lib/GnuPG/SubKey.pm, lib/GnuPG/UserId.pm,
+	t/get_public_keys.t, t/get_secret_keys.t, t/list_public_keys.t,
+	t/list_secret_keys.t, t/list_sigs.t,
+	t/GnuPG/ComparableFingerprint.pm, t/GnuPG/ComparableKey.pm,
+	t/GnuPG/ComparablePublicKey.pm, t/GnuPG/ComparableSecretKey.pm,
+	t/GnuPG/ComparableSignature.pm, t/GnuPG/ComparableSubKey.pm,
+	t/GnuPG/ComparableUserId.pm: rework testing structure so that
+	comparable stuff is in inherited classes used specifically for
+	testing
+	
+	also, testing is less strict on many objects, since GnuPG is
+	becoming wild and unpredicable :)
+
+2001-04-27 19:58  ftobin
+
+	* lib/GnuPG/Interface.pm, lib/GnuPG/PublicKey.pm,
+	lib/GnuPG/SecretKey.pm, lib/GnuPG/SubKey.pm, t/MyTestSpecific.pm,
+	t/export_keys.t, t/get_public_keys.t, t/get_secret_keys.t,
+	t/list_public_keys.t, t/list_secret_keys.t, t/list_sigs.t: don't
+	close stdout early; I think it's triggering a buffering issue
+
+2001-01-25 19:52  ftobin
+
+	* lib/GnuPG/: Interface.pm, Options.pm: doc updates
+
+2001-01-02 00:09  ftobin
+
+	* lib/GnuPG/Interface.pm: fix up docs for
+	GnuPG::Interface::wrap_call() and in general all around for
+	Interface.pm POD
+
+2000-11-21 12:03  ftobin
+
+	* NEWS, lib/GnuPG/Fingerprint.pm, lib/GnuPG/Handles.pm,
+	lib/GnuPG/Interface.pm, lib/GnuPG/Key.pm, lib/GnuPG/Options.pm,
+	lib/GnuPG/PublicKey.pm, lib/GnuPG/SecretKey.pm,
+	lib/GnuPG/Signature.pm, lib/GnuPG/SubKey.pm, lib/GnuPG/UserId.pm,
+	t/MyTest.pm, t/MyTestSpecific.pm: new licensing
+
+2000-11-21 11:56  ftobin
+
+	* COPYING: new licensing
+
+2000-08-05 14:22  ftobin
+
+	* THANKS: thanks for AutoLoader fix
+
 2000-08-05 14:12  ftobin
 
 	* MANIFEST: for sanity, trustdb.gpg is no longer shipped

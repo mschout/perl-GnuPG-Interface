@@ -3,21 +3,14 @@
 #
 #  Copyright (C) 2000 Frank J. Tobin <ftobin@uiuc.edu>
 #
-#  This program is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2 of the License, or
-#  (at your option) any later version.
+#  This module is free software; you can redistribute it and/or modify it
+#  under the same terms as Perl itself.
 #
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, visit the following URL:
-#  http://www.gnu.org
-#
-#  $Id: Key.pm,v 1.5 2000/07/12 22:29:39 ftobin Exp $
+#  $Id: Key.pm,v 1.7 2001/04/28 04:01:04 ftobin Exp $
 #
 
 package GnuPG::Key;
@@ -39,46 +32,7 @@ sub short_hex_id
     return substr $self->hex_id(), -8;
 }
 
-
-sub rigorously_compare
-{
-    my ( $self, $other ) = @_;
-    
-    my @comparison_pairs = 
-      ( $self->length(),                 $other->length(),
-        $self->algo_num(),               $other->algo_num(),
-        $self->hex_id(),                 $other->hex_id(),
-	$self->creation_date_string(),   $other->creation_date_string(),
-        #this is taken out because GnuPG for some reason has decided
-	#to not make expiration date listings the same for subkeys
-	#in public-key mode and private-key mode
-	#$self->expiration_date_string(), $other->expiration_date_string(),
-      );
-    
-    for ( my $i = 0; $i < @comparison_pairs; $i += 2 )
-    {
-	return 0
-	  unless defined $comparison_pairs[$i]
-	    and defined $comparison_pairs[$i];
-	return 0 if $comparison_pairs[$i] ne $comparison_pairs[$i+1];
-    }
-    
-    return 1;
-}
-
-
-sub deeply_compare
-{
-    my ( $self, $other ) = @_;
-    
-    return
-      $self->rigorously_compare( $other )
-	and $self->fingerprint->deeply_compare( $other->fingerprint() );
-}
-
-
 1;
-
 
 __END__
 
