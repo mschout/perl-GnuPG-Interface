@@ -1,3 +1,11 @@
+Noteworthy changes in 0.06
+-----------------------------------------------------------------
+
+  *	textmode option added to GnuPG::Options, and
+	booleans of GnuPG::Options now make use
+	of Class::MethodMaker's boolean usability.
+
+
 Noteworthy changes in 0.04
 -----------------------------------------------------------------
 

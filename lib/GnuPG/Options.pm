@@ -17,37 +17,49 @@
 #  along with this program; if not, visit the following URL:
 #  http://www.gnu.org
 #
-#  $Id: Options.pm,v 1.3 2000/04/25 20:23:38 ftobin Exp $
+#  $Id: Options.pm,v 1.4 2000/05/17 20:30:24 ftobin Exp $
 #
 
 package GnuPG::Options;
 
 use strict;
+
+use constant BOOLEANS => qw( armor
+			     no_greeting
+			     verbose             no_verbose       quiet
+			     batch
+			     always_trust
+			     no_comment
+			     rfc1991             openpgp
+			     force_v3_sigs
+			     no_options
+			     textmode
+			       
+			     meta_pgp_5_compatible
+			     meta_pgp_2_compatible
+			     meta_interactive
+			   );
+
+use constant SCALARS => qw( homedir
+			    default_key
+			    comment
+			    status_fd       logger_fd       passphrase_fd
+			    compress_algo
+			    options
+			    
+			    meta_signing_key
+			  );
+
+use constant LISTS => qw( encrypt_to
+			  recipients
+			  meta_recipients_keys
+			  extra_args
+			);
+
 use Class::MethodMaker
-  get_set       => [ qw( homedir
-			 armor
-			 default_key
-			 no_greeting
-			 verbose         no_verbose      quiet
-			 batch
-			 always_trust
-			 comment         no_comment
-			 status_fd       logger_fd       passphrase_fd
-			 compress_algo
-			 force_v3_sigs
-			 rfc1991         openpgp
-			 options         no_options
-			 
-			 meta_pgp_5_compatible
-			 meta_pgp_2_compatible
-			 meta_interactive
-			 meta_signing_key
-		       ) ],
-  list          => [ qw( encrypt_to
-			 recipients
-			 meta_recipients_keys
-			 extra_args
-		       ) ],
+  boolean       => [ BOOLEANS ],
+  get_set       => [ SCALARS ],
+  list          => [ LISTS ],
   new_with_init => 'new',
   new_hash_init => 'hash_init';
 
@@ -65,7 +77,15 @@ sub init
 sub copy
 {
     my ( $self ) = @_;
-    return __PACKAGE__->new( %{ $self } );
+    
+    my $new = __PACKAGE__->new();
+    
+    foreach my $field ( BOOLEANS, SCALARS, LISTS )
+    {
+	$new->$field( $self->$field() );
+    }
+    
+    return $new;
 }
 
 
@@ -76,7 +96,8 @@ sub get_args
     
     return ( $self->get_meta_args(),
 	     $self->get_option_args(),
-	     $self->extra_args() );
+	     $self->extra_args()
+	   );
 }
 
 
@@ -91,6 +112,7 @@ sub get_option_args
     push @args, '--options',       $self->options()         if $self->options();
     push @args, '--no-options'                              if $self->no_options();
     push @args, '--armor'                                   if $self->armor();
+    push @args, '--textmode'                                if $self->textmode();
     push @args, '--default-key',   $self->default_key()     if $self->default_key();
     push @args, '--no-greeting'                             if $self->no_greeting();
     push @args, '--verbose'                                 if $self->verbose();
@@ -183,15 +205,17 @@ and then I<extra_args>, in that order.
 =head1 OBJECT DATA MEMBERS
 
 Note that these data members are interacted with via object methods
-created using the methods described in L<Class::MethodMaker/"get_set">,
-L<Class::MethodMaker/"object">, and L<Class::MethodMaker/"list">.
-Please read there for more information.
+created using the methods described in L<Class::MethodMaker/"boolean">,
+L<Class::MethodMaker/"get_set">, L<Class::MethodMaker/"object">,
+and L<Class::MethodMaker/"list">.  Please read there for more information.
 
 =over 4
 
 =item homedir
 
 =item armor
+
+=item textmode
 
 =item default_key
 
@@ -238,7 +262,7 @@ are boolean to GnuPG, simply that argument is passed.  For those
 that are associated with a scalar, that scalar is passed passed
 as an argument appropriate.  For those that can be specified more
 than once, such as B<recipients>, those are considered lists
-and passed accordingly.  Each are undefined to begin.
+and passed accordingly.  Each are undefined or false to begin.
 
 =head2 Meta Options
 

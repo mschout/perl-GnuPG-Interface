@@ -22,10 +22,14 @@ TEST
     my $passphrase_handle = gensym;
     $handles->passphrase( $passphrase_handle );
     
-    $gnupg->sign( handles => $handles );
-    print $stdin @plaintext;
-    close $stdin;
-    wait;
+    my $pid = $gnupg->sign( handles => $handles );
     
+    print $passphrase_handle 'test';
+    print $stdin @plaintext;
+    
+    close $passphrase_handle;
+    close $stdin;
+    
+    waitpid $pid, 0;
     return $CHILD_ERROR == 0;
 };

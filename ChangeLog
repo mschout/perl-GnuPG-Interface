@@ -1,3 +1,24 @@
+2000-05-17 15:43  ftobin
+
+	* NEWS: bumped up version to 0.06 since I missed changing the
+	version in Interface.pm the last time
+
+2000-05-17 15:30  ftobin
+
+	* NEWS, lib/GnuPG/Options.pm: GnuPG::Options now makes use of
+	C::MM's booleans, and textmode option added
+
+2000-05-11 04:08  ftobin
+
+	* lib/GnuPG/Interface.pm: waitpid() are now implemented in various
+	functions that totally encapsulate the call to GnuPG.
+
+2000-05-11 04:07  ftobin
+
+	* t/passphrase_handling.t: The passphrase was never really passed
+	down through the pipe before; the error was gotten from the
+	previous call to GnuPG.
+
 2000-04-25 17:02  ftobin
 
 	* NEWS: put in 0.04 NEWS

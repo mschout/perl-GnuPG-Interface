@@ -17,7 +17,7 @@
 #  along with this program; if not, visit the following URL:
 #  http://www.gnu.org
 #
-#  $Id: Interface.pm,v 1.6 2000/04/25 21:58:55 ftobin Exp $
+#  $Id: Interface.pm,v 1.7 2000/05/11 09:08:12 ftobin Exp $
 #
 
 package GnuPG::Interface;
@@ -41,7 +41,7 @@ use GnuPG::Fingerprint;
 use GnuPG::UserId; 
 use GnuPG::Signature;
 
-$VERSION = "0.04";
+$VERSION = "0.06";
 
 use constant DEBUG => 0;
 
@@ -414,7 +414,8 @@ sub test_default_key_passphrase()
     my $saved_meta_interactive_option = $self->options->meta_interactive();
     $self->options->clear_meta_interactive();
     
-    $self->sign( handles => $handles );
+    my $pid = $self->sign( handles => $handles );
+    
     close $stdin;
     
     # restore this setting to its original setting
@@ -423,11 +424,16 @@ sub test_default_key_passphrase()
     # all we realy want to check is the status fh
     while ( <$status> )
     {
-	return 1 if /^\[GNUPG:\]\s*GOOD_PASSPHRASE/;
+	if ( /^\[GNUPG:\]\s*GOOD_PASSPHRASE/ )
+	{
+	    waitpid $pid, 0;
+	    return 1;
+	}
     }
     
     # If we didn't catch the regexp above, we'll assume
     # that the passphrase was incorrect
+    waitpid $pid, 0;
     return 0;
 }
 
