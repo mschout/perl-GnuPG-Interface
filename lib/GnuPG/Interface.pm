@@ -10,7 +10,7 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: Interface.pm,v 1.42 2002/06/11 16:01:14 ftobin Exp $
+#  $Id: Interface.pm,v 1.44 2002/06/14 16:10:15 ftobin Exp $
 #
 
 package GnuPG::Interface;
@@ -28,7 +28,7 @@ use IO::Handle;
 use GnuPG::Options;
 use GnuPG::Handles;
 
-$VERSION = '0.32';
+$VERSION = '0.33';
 
 use Class::MethodMaker
   get_set         => [ qw( call  passphrase ) ],
@@ -668,8 +668,7 @@ sub import_keys( $% )
 {
     my ( $self, %args ) = @_;
     return $self->wrap_call( %args,
-			     commands      => [ '--import' ],
-			     command_args  => [ '-' ] );
+			     commands => [ '--import' ] );
 }
 
 

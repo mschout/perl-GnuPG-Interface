@@ -1,3 +1,13 @@
+2002-06-14 12:10  ftobin
+
+	* NEWS, lib/GnuPG/Interface.pm: add NEWS, bump version
+
+2002-06-14 12:08  ftobin
+
+	* THANKS, lib/GnuPG/Interface.pm: fix debian bug #149966, thanks to
+	 Peter Palfrader <weasel@debian.org> Seems import-keys doesn't need
+	'-' passed anymore.
+
 2002-06-11 12:01  ftobin
 
 	* NEWS, lib/GnuPG/Interface.pm: add news about latest version, bump

@@ -1,3 +1,12 @@
+Noteworthy changes in 0.33
+-----------------------------------------------------------------
+
+    *	Fixed a bug in GnuPG::Interface->import_keys() so that
+	it doesn't overwrite your 'command_args' anymore.
+	Thanks to  Peter Palfrader <weasel@debian.org> for
+	pointing this out.
+
+
 Noteworthy changes in 0.32
 -----------------------------------------------------------------
 
