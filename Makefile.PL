@@ -13,6 +13,14 @@ my $gnupg_base = 'lib/GnuPG';
 my $gnupg_install_base = "\$(INST_LIBDIR)";
 my %pm_install_hash = ();
 
+my $gpg_find = 'which gpg';
+print "$gpg_find ... ";
+system($gpg_find);
+if ($CHILD_ERROR != 0)
+{
+    die "gpg (GnuPG) not found";
+}
+
 find( \&set_pm_install_hash, $gnupg_base );
 
 sub set_pm_install_hash

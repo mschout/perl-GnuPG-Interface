@@ -10,8 +10,6 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#  $Id: Interface.pm,v 1.44 2002/06/14 16:10:15 ftobin Exp $
-#
 
 package GnuPG::Interface;
 
@@ -28,7 +26,7 @@ use IO::Handle;
 use GnuPG::Options;
 use GnuPG::Handles;
 
-$VERSION = '0.33';
+$VERSION = '0.35';
 
 use Class::MethodMaker
   get_set         => [ qw( call  passphrase ) ],
@@ -543,7 +541,7 @@ sub get_keys
 	    
 	    $current_key->push_subkeys( $current_signed_item );
 	}
-	else
+	elsif ( $record_type ne 'tru' )
 	{
 	    warn "unknown record type $record_type"; 
 	}
@@ -922,8 +920,8 @@ for that handle, as described in L<GnuPG::Handles/options>.  For example,
 to have GnuPG read from the file F<input.txt> and write to F<output.txt>,
 the following snippet may do:
 
-  my $infile  = IO::File->new( 'input.txt.' );
-  my $outfile = IO::File->new( 'output.txt' );
+  my $infile  = IO::File->new( 'input.txt' );
+  my $outfile = IO::File->new( '>output.txt' );
   my $handles = GnuPG::Handles->new( stdin  => $infile,
                                      stdout => $outfile,
                                    );
@@ -1284,12 +1282,8 @@ L<perlipc/"Bidirectional Communication with Another Process">
 
 =head1 AUTHOR
 
-Frank J. Tobin, ftobin@cpan.org
+GnuPg::Interface is currently maintained by Jesse Vincent <jesse@cpan.org>.  
 
-=head1 PACKAGE UPDATES
-
-Package updates may be found on
-http://GnuPG-Interface.sourceforge.net/
-or CPAN, http://www.cpan.org/.
+Frank J. Tobin, ftobin@cpan.org was the original author of the package.
 
 =cut
