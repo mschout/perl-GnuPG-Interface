@@ -16,22 +16,23 @@ Hash: SHA1
 
 SHA1 187c2cfc1fc31d42c18d5b1653afa1a905bf266c COPYING
 SHA1 5df20960703ba8651c67f36ed4ed601e0d0d4406 ChangeLog
-SHA1 ae07f475fb7a1668d2ffcfe090f99961ddb77d41 MANIFEST
-SHA1 7beeb96d32ce9fd224db1fe25052960fe640c464 Makefile.PL
+SHA1 282502ad66eb4c74aa3b4a73453e7d85aeb78169 MANIFEST
+SHA1 d02e8107944e2cee7dedc5edbbae44c614b1a3b4 META.yml
+SHA1 db4d1518e68717aab32d56c733ef2fce657e8ffa Makefile.PL
 SHA1 d6e32c5128419cdbfe6e6f846ff7f64fc0adac2f NEWS
 SHA1 1047dc54823b1321e939274dd261d8e40febee24 README
 SHA1 df07bf5a2dd74ffe4b69dff3063f68879cf9e355 THANKS
-SHA1 d24732774ba9a4cbdda50a384cf8be663ecf91e6 lib/GnuPG/Fingerprint.pm
-SHA1 adafb2ff1a23ca10691bba5ab96d5e3c77bdaec5 lib/GnuPG/Handles.pm
-SHA1 70b42a050f887196450846dfe9436992cc29a921 lib/GnuPG/Interface.pm
-SHA1 742929758535fe82fe609a7d668355e7142eff8c lib/GnuPG/Key.pm
-SHA1 90204e29f8ba26267a882d1e2b1b4e56fefeeeeb lib/GnuPG/Options.pm
-SHA1 f84ba91c4ed3e47f1b5bba20c02e087ee3d90e73 lib/GnuPG/PrimaryKey.pm
+SHA1 626d7112a03b50a65bbc7d4a1d933a13633b4da3 lib/GnuPG/Fingerprint.pm
+SHA1 09c2b143c60c9c6a47b6b554f935ae6637ab9463 lib/GnuPG/Handles.pm
+SHA1 0fb961b3827bf3fff0cf138616fd27b24c806463 lib/GnuPG/Interface.pm
+SHA1 195999332e03b0e5fb60ba44ce5f8269c6d016f7 lib/GnuPG/Key.pm
+SHA1 e5919e000ee5ad6ba20b6a6eb1ba80217c3c1e4a lib/GnuPG/Options.pm
+SHA1 b580d0727a06048c187853f3cbda5eda0be851bd lib/GnuPG/PrimaryKey.pm
 SHA1 d13ae0d9fff63041cbe9f89cb6bcf329e0b4d4e6 lib/GnuPG/PublicKey.pm
 SHA1 cbe00ca1d42f6a6dff5bc0cc3e3a9bf6687440fc lib/GnuPG/SecretKey.pm
-SHA1 ca90003145b6b6c71a963b96da8415e7f22e9c20 lib/GnuPG/Signature.pm
-SHA1 76a6d21bacb3d8c8e18715aaa2c06a0db695f4b0 lib/GnuPG/SubKey.pm
-SHA1 192f417f4bdb5398130362544cf6fb4c00b4e928 lib/GnuPG/UserId.pm
+SHA1 b97591dc25ed2c907aa195e9f4aad918f6ce2cd9 lib/GnuPG/Signature.pm
+SHA1 577e01d01e5eb49c70b354788c459fb6cd8dda9e lib/GnuPG/SubKey.pm
+SHA1 e55325924e9727309d90c5de52b45af8b399d877 lib/GnuPG/UserId.pm
 SHA1 367fdb308292a9c005afffef49ff9096a20a4da3 t/Fingerprint.t
 SHA1 501ac69701ce51b3dd98f7f82a3c19a4fba6c3bd t/GnuPG/ComparableFingerprint.pm
 SHA1 ac3e4f640c0b7ffc2e6cc1a9d08546927614a456 t/GnuPG/ComparableKey.pm
@@ -81,9 +82,9 @@ SHA1 3bd6135279f9ae23e32680707c6170910421e5de test/secret-keys/2.0.test
 SHA1 4ae7541bb82abaef5573e61582c4dd4f96cc7f63 test/secring.gpg
 SHA1 981418a80bf7dab91b63608cfd1ddf5091f89ad7 test/signed.1.asc
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (Darwin)
+Version: GnuPG v1.4.9 (Darwin)
 
-iD8DBQFGwIXrEi9d9xCOQEYRAhSQAJ9U5f8EkJZne2zphN0bH0n4LyGsgQCeJlQJ
-lifWJJP0osY0RQNcoQVcRkI=
-=M5Dc
+iEYEARECAAYFAkj92bMACgkQEi9d9xCOQEbaUQCfU2HfwbSknoQ7mQJFN2y9XjVB
+8IUAnRhnyB9xbH8N/4Il8NWnmDN8veH+
+=gg9Q
 -----END PGP SIGNATURE-----
