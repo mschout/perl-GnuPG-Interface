@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               GnuPG-Interface
-version:            0.40_01
+version:            0.40_02
 abstract:           supply object methods for interacting with GnuPG
 author:
     - Frank J. Tobin
@@ -9,7 +9,8 @@ distribution_type:  module
 configure_requires:
     ExtUtils::MakeMaker:  0
 requires:
-    Moose:  0.61
+    Moose:                0.61
+    MooseX::AttributeHelpers:  0.14
 no_index:
     directory:
         - t
