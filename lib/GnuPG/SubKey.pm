@@ -14,13 +14,15 @@
 #
 
 package GnuPG::SubKey;
-use Moose;
+use Any::Moose;
 BEGIN { extends qw( GnuPG::Key ) }
 
 has [qw( validity   owner_trust  local_id  signature )] => (
     isa => 'Any',
     is  => 'rw',
 );
+
+__PACKAGE__->meta->make_immutable;
 
 1;
 

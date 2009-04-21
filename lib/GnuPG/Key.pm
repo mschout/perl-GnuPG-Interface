@@ -14,7 +14,7 @@
 #
 
 package GnuPG::Key;
-use Moose;
+use Any::Moose;
 with qw(GnuPG::HashInit);
 
 has [
@@ -35,6 +35,8 @@ sub short_hex_id {
     my ($self) = @_;
     return substr $self->hex_id(), -8;
 }
+
+__PACKAGE__->meta->make_immutable;
 
 1;
 

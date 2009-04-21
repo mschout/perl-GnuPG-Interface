@@ -12,7 +12,7 @@
 #
 
 package GnuPG::Interface;
-use Moose;
+use Any::Moose;
 with qw(GnuPG::HashInit);
 
 use English qw( -no_match_vars );
@@ -27,7 +27,7 @@ use IO::Handle;
 use GnuPG::Options;
 use GnuPG::Handles;
 
-$VERSION = '0.40_02';
+$VERSION = '0.40_04';
 
 has $_ => (
     isa     => 'Any',
@@ -60,8 +60,6 @@ struct(
         parent_is_source => '$', name_shows_dup => '$',
     }
 );
-
-1;
 
 #################################################################
 # real worker functions
@@ -336,6 +334,10 @@ sub my_fileno {
     croak "error determining fileno for $fh: $ERRNO" unless defined $fileno;
     return $fileno;
 }
+
+__PACKAGE__->meta->make_immutable;
+
+1;
 
 __END__
 
@@ -744,7 +746,7 @@ decryption, verification, and key-listing parsing.
 =head2 How Data Member Accessor Methods are Created
 
 Each module in the GnuPG::Interface bundle relies
-on Moose to generate the get/set methods
+on Any::Moose to generate the get/set methods
 used to set the object's data members.
 I<This is very important to realize.>  This means that
 any data member which is a list has special

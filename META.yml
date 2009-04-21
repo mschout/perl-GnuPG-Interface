@@ -1,21 +1,24 @@
---- #YAML:1.0
-name:               GnuPG-Interface
-version:            0.40_02
-abstract:           supply object methods for interacting with GnuPG
+---
+abstract: 'supply object methods for interacting with GnuPG'
 author:
-    - Frank J. Tobin
-license:            unknown
-distribution_type:  module
+  - 'Frank J. Tobin'
+build_requires:
+  ExtUtils::MakeMaker: 6.42
 configure_requires:
-    ExtUtils::MakeMaker:  0
-requires:
-    Moose:                0.61
-    MooseX::AttributeHelpers:  0.14
-no_index:
-    directory:
-        - t
-        - inc
-generated_by:       ExtUtils::MakeMaker version 6.46
+  ExtUtils::MakeMaker: 6.42
+distribution_type: module
+generated_by: 'Module::Install version 0.84'
+license: perl
 meta-spec:
-    url:      http://module-build.sourceforge.net/META-spec-v1.4.html
-    version:  1.4
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: GnuPG-Interface
+no_index:
+  directory:
+    - inc
+    - t
+requires:
+  Any::Moose: 0.04
+resources:
+  license: http://dev.perl.org/licenses/
+version: 0.40_04

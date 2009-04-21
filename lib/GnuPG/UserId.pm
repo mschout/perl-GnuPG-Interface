@@ -14,21 +14,23 @@
 #
 
 package GnuPG::UserId;
-use Moose;
-use MooseX::AttributeHelpers;
+use Any::Moose;
 
 has [qw( validity as_string )] => (
     isa => 'Any',
     is  => 'rw',
 );
 
-has $_ => (
+has signatures => (
     isa       => 'ArrayRef',
     is        => 'rw',
     default   => sub { [] },
-    metaclass => 'Collection::Array',
-    provides  => { push => 'push_' . $_ },
-) for qw(signatures);
+);
+
+sub push_signatures {
+    my $self = shift;
+    push @{ $self->signatures }, @_;
+}
 
 # DEPRECATED
 sub user_id_string {
@@ -36,6 +38,8 @@ sub user_id_string {
     $self->as_string($v) if defined $v;
     return $self->as_string();
 }
+
+__PACKAGE__->meta->make_immutable;
 
 1;
 
