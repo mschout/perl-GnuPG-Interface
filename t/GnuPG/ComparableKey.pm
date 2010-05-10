@@ -24,12 +24,12 @@ sub compare
 {
     my ( $self, $other, $deep ) = @_;
     
-    # expiration_date_string was taken out of the following
-    # list because there is a bug in the listing of
+    # expiration_date_string and expiration_date was taken out of the
+    # following list because there is a bug in the listing of
     # expiration dates in 1.0.5
     my @comparison_fields
-      = qw( length algo_num hex_id
-	    creation_date_string
+      = qw( length algo_num hex_id creation_date
+	    creation_date_string usage_flags
 	  );
     
     foreach my $field ( @comparison_fields )
@@ -48,8 +48,24 @@ sub compare
 sub _deeply_compare
 {
     my ( $self, $other ) = @_;
-    bless $self->fingerprint(), 'GnuPG::ComparableFingerprint';
-    
+    my $i;
+
+    for ( $i = 0; $i < scalar(@{$self->signatures}); $i++ ) {
+      return 0
+        unless $self->signatures->[$i]->compare($other->signatures->[$i], 1);
+    }
+
+    for ( $i = 0; $i < scalar(@{$self->revocations}); $i++ ) {
+      return 0
+        unless $self->revocations->[$i]->compare($other->revocations->[$i], 1);
+    }
+
+    for ( $i = 0; $i < scalar(@{$self->revokers}); $i++ ) {
+      return 0
+        unless $self->revokers->[$i]->compare($other->revokers->[$i], 1);
+    }
+
+    bless $self->fingerprint(), 'GnuPG::Fingerprint';
     return ( $self->fingerprint->compare( $other->fingerprint() ) );
 }
 

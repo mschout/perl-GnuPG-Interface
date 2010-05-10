@@ -28,9 +28,11 @@ TEST
       ( length                 => 1024,
 	algo_num               => 17,
 	hex_id                 => '53AE596EF950DA9C',
+        creation_date          => 949813093,
 	creation_date_string   => '2000-02-06',
 	expiration_date_string => '2002-02-05',
 	owner_trust            => 'f',
+        usage_flags            => 'scaESCA',
       );
     
     $handmade_key->fingerprint
@@ -44,8 +46,10 @@ TEST
 	length                   => 768,
 	algo_num                 => 16,
 	hex_id                   => 'ADB99D9C2E854A6B',
+        creation_date            => 949813119,
 	creation_date_string     => '2000-02-06',
 	expiration_date_string   => '2002-02-05',
+        usage_flags              => 'e',
       );
     
     $subkey->fingerprint

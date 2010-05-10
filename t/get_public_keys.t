@@ -29,9 +29,11 @@ TEST
       ( length                 => 1024,
 	algo_num               => 17,
 	hex_id                 => '53AE596EF950DA9C',
+        creation_date          => 949813093,
 	creation_date_string   => '2000-02-06',
 	expiration_date_string => '2002-02-05',
 	owner_trust            => 'f',
+        usage_flags            => 'scaESCA',
       );
     
     $handmade_key->fingerprint
@@ -40,31 +42,60 @@ TEST
 			       )
       );
     
-    my $initial_self_signature = GnuPG::Signature->new
-      ( algo_num       => 17,
+    my $subkey_signature = GnuPG::Signature->new
+      ( validity       => '!',
+        algo_num       => 17,
 	hex_id         => '53AE596EF950DA9C',
-	date_string    => '2000-02-06',
+        date           => 1177086380,
+	date_string    => '2007-04-20',
+        user_id_string => 'GnuPG test key (for testing purposes only)',
+        sig_class      => 0x18,
+        is_exportable  => 1,
       );
     
     my $uid2_signature = GnuPG::Signature->new
-      ( algo_num       => 17,
+      ( validity       => '!',
+        algo_num       => 17,
         hex_id         => '53AE596EF950DA9C',
+        date           => 953179891,
         date_string    => '2000-03-16',
       );
     
     my $ftobin_signature = GnuPG::Signature->new
-      ( algo_num       => 17,
+      ( validity       => '!',
+        algo_num       => 17,
 	hex_id         => '56FFD10A260C4FA3',
+        date           => 953180097,
 	date_string    => '2000-03-16',
 	);
+    
+    my $designated_revoker_sig = GnuPG::Signature->new
+      ( validity       => '!',
+        algo_num       => 17,
+	hex_id         => '53AE596EF950DA9C',
+        date           => 978325209,
+	date_string    => '2001-01-01',
+        sig_class      => 0x1f,
+        is_exportable  => 1
+	);
+
+    my $revoker = GnuPG::Revoker->new
+      ( algo_num       => 17,
+        class          => 0x80,
+	fingerprint    => GnuPG::Fingerprint->new( as_hex_string =>
+                                                   '4F863BBBA8166F0A340F600356FFD10A260C4FA3'),
+	);
+    $revoker->push_signatures($designated_revoker_sig);
     
     my $subkey = GnuPG::SubKey->new
       ( validity                 => 'u',
 	length                   => 768,
 	algo_num                 => 16,
 	hex_id                   => 'ADB99D9C2E854A6B',
+        creation_date            => 949813119,
 	creation_date_string     => '2000-02-06',
 	expiration_date_string   => '2002-02-05',
+        usage_flags              => 'e',
       );
     
     $subkey->fingerprint
@@ -73,9 +104,10 @@ TEST
 			       )
       );
     
-    $subkey->signature( $initial_self_signature );
+    $subkey->push_signatures( $subkey_signature );
     
     $handmade_key->push_subkeys( $subkey );
+    $handmade_key->push_revokers( $revoker );
     
     $handmade_key->compare( $given_key );
 };

@@ -1,7 +1,8 @@
-#  UserId.pm
-#    - providing an object-oriented approach to GnuPG user ids
+#  UserAttribute.pm
+#    - providing an object-oriented approach to GnuPG user attributes
 #
-#  Copyright (C) 2000 Frank J. Tobin <ftobin@cpan.org>
+#  Copyright (C) 2010 Daniel Kahn Gillmor <dkg@fifthhorseman.net>
+#  (derived from UserId.pm, Copyright (C) 2000 Frank J. Tobin <ftobin@cpan.org>)
 #
 #  This module is free software; you can redistribute it and/or modify it
 #  under the same terms as Perl itself.
@@ -13,10 +14,10 @@
 #  $Id: UserId.pm,v 1.7 2001/08/21 13:31:50 ftobin Exp $
 #
 
-package GnuPG::UserId;
+package GnuPG::UserAttribute;
 use Any::Moose;
 
-has [qw( validity as_string )] => (
+has [qw( validity subpacket_count subpacket_total_size )] => (
     isa => 'Any',
     is  => 'rw',
 );
@@ -41,14 +42,6 @@ sub push_revocations {
     push @{ $self->revocations }, @_;
 }
 
-
-# DEPRECATED
-sub user_id_string {
-    my ( $self, $v ) = @_;
-    $self->as_string($v) if defined $v;
-    return $self->as_string();
-}
-
 __PACKAGE__->meta->make_immutable;
 
 1;
@@ -57,16 +50,16 @@ __END__
 
 =head1 NAME
 
-GnuPG::UserId - GnuPG User ID Objects
+GnuPG::UserAttribute - GnuPG User Attribute Objects
 
 =head1 SYNOPSIS
 
   # assumes a GnuPG::PublicKey object in $publickey
-  my $user_id = $publickey->user_ids_ref->[0]->as_string;
+  my $jpgs_size = $publickey->user_attributes->[0]->subpacket_total_size();
 
 =head1 DESCRIPTION
 
-GnuPG::UserId objects are generally not instantiated on their
+GnuPG::UserAttribute objects are generally not instantiated on their
 own, but rather as part of GnuPG::PublicKey or GnuPG::SecretKey
 objects.
 
@@ -85,28 +78,39 @@ initialization of data members;
 
 =over 4
 
-=item as_string
-
-A string of the user id.
-
 =item validity
 
-A scalar holding the value GnuPG reports for the trust of authenticity
-(a.k.a.) validity of a key.
-See GnuPG's DETAILS file for details.
+A scalar holding the value GnuPG reports for the calculated validity
+of the binding between this User Attribute packet and its associated
+primary key.  See GnuPG's DETAILS file for details.
+
+=item subpacket_count
+
+A scalar holding the number of attribute subpackets.  This is usually
+1, as most UATs seen in the wild contain a single image in JPEG
+format.
+
+=item subpacket_total_size
+
+A scalar holding the total byte count of all attribute subpackets.
 
 =item signatures
 
 A list of GnuPG::Signature objects embodying the signatures
-on this user id.
+on this user attribute.
 
 =item revocations
 
-A list of revocations associated with this User ID, stored as
+A list of revocations associated with this User Attribute, stored as
 GnuPG::Signature objects (since revocations are a type of
 certification as well).
 
 =back
+
+=head1 BUGS
+
+No useful information about the embedded attributes is provided yet.
+It would be nice to be able to get ahold of the raw JPEG material.
 
 =head1 SEE ALSO
 

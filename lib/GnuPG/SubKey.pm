@@ -15,12 +15,33 @@
 
 package GnuPG::SubKey;
 use Any::Moose;
+use Carp;
 BEGIN { extends qw( GnuPG::Key ) }
 
-has [qw( validity   owner_trust  local_id  signature )] => (
+has [qw( validity   owner_trust  local_id  )] => (
     isa => 'Any',
     is  => 'rw',
 );
+
+# DEPRECATED!
+# return the last signature, if present.  Or push in a new signature,
+# if one is supplied.
+sub signature {
+  my $self = shift;
+  my $argcount = @_;
+
+  if ($argcount) {
+    @{$self->signatures} = ();
+    $self->push_signatures(@_);
+  } else {
+    my $sigcount = @{$self->signatures};
+    if ($sigcount) {
+      return $self->signatures->[$sigcount-1];
+    } else {
+      return undef;
+    }
+  }
+}
 
 __PACKAGE__->meta->make_immutable;
 
@@ -70,8 +91,12 @@ See GnuPG's DETAILS file for details.
 
 =item signature
 
-A GnuPG::Signature object holding the representation of the
-signature on this key.
+* DEPRECATED*
+
+A GnuPG::Signature object holding the representation of the signature
+on this key.  Please use signatures (see L<GnuPG::Key>) instead of
+signature.  Using signature, you will get an arbitrary signature from
+the set of available signatures.
 
 =back
 

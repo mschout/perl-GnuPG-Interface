@@ -26,7 +26,7 @@ use IO::Handle;
 use GnuPG::Options;
 use GnuPG::Handles;
 
-$VERSION = '0.42';
+$VERSION = '0.42_01';
 
 has $_ => (
     isa     => 'Any',
@@ -335,6 +335,11 @@ sub my_fileno {
 }
 
 
+sub unescape_string {
+  my($str) = splice(@_);
+  $str =~ s/\\x(..)/chr(hex($1))/eg;
+  return $str;
+}
 
 ###################################################################
 
@@ -360,7 +365,7 @@ sub get_public_keys_with_sigs ( $@ ) {
     my ( $self, @key_ids ) = @_;
 
     return $self->get_keys(
-        commands     => ['--list-sigs'],
+        commands     => ['--check-sigs'],
         command_args => [@key_ids],
     );
 }
@@ -373,6 +378,7 @@ sub get_keys {
     $self->options($new_options);
     $self->options->push_extra_args(
         '--with-colons',
+        '--fixed-list-mode',
         '--with-fingerprint',
         '--with-fingerprint',
     );
@@ -391,16 +397,18 @@ sub get_keys {
     );
 
     my @returned_keys;
-    my $current_key;
+    my $current_primary_key;
     my $current_signed_item;
-    my $current_fingerprinted_key;
+    my $current_key;
 
     require GnuPG::PublicKey;
     require GnuPG::SecretKey;
     require GnuPG::SubKey;
     require GnuPG::Fingerprint;
     require GnuPG::UserId;
+    require GnuPG::UserAttribute;
     require GnuPG::Signature;
+    require GnuPG::Revoker;
 
     while (<$stdout>) {
         my $line = $_;
@@ -411,70 +419,102 @@ sub get_keys {
         my $record_type = $fields[0];
 
         if ( $record_type eq 'pub' or $record_type eq 'sec' ) {
-            push @returned_keys, $current_key
-                if $current_key;
+            push @returned_keys, $current_primary_key
+                if $current_primary_key;
 
             my (
                 $user_id_validity, $key_length, $algo_num, $hex_key_id,
-                $creation_date_string, $expiration_date_string,
-                $local_id, $owner_trust, $user_id_string
+                $creation_date, $expiration_date,
+                $local_id, $owner_trust, $user_id_string,
+                $sigclass, #unused
+                $usage_flags,
             ) = @fields[ 1 .. $#fields ];
 
+            # --fixed-list-mode uses epoch time for creation and expiration date strings.
+            # For backward compatibility, we convert them back using GMT;
+            my $expiration_date_string;
+            if ($expiration_date eq '') {
+              $expiration_date = undef;
+            } else {
+              $expiration_date_string = $self->_downrez_date($expiration_date);
+            }
+            my $creation_date_string = $self->_downrez_date($creation_date);
 
-			# GnuPg 2.x uses epoch time for creation and expiration date strings. 
-			# For backward compatibility, we convert them back using GMT;
-			$creation_date_string = $self->_downrez_gpg2_date($creation_date_string);
-			$expiration_date_string = $self->_downrez_gpg2_date($expiration_date_string);
-
-            $current_key = $current_fingerprinted_key
+            $current_primary_key = $current_key
                 = $record_type eq 'pub'
                 ? GnuPG::PublicKey->new()
                 : GnuPG::SecretKey->new();
 
-            $current_key->hash_init(
+            $current_primary_key->hash_init(
                 length                 => $key_length,
                 algo_num               => $algo_num,
                 hex_id                 => $hex_key_id,
                 local_id               => $local_id,
                 owner_trust            => $owner_trust,
+                creation_date          => $creation_date,
+                expiration_date        => $expiration_date,
                 creation_date_string   => $creation_date_string,
                 expiration_date_string => $expiration_date_string,
+                usage_flags            => $usage_flags,
             );
 
-            $current_signed_item = GnuPG::UserId->new(
-                validity  => $user_id_validity,
-                as_string => $user_id_string,
-            );
-
-            $current_key->push_user_ids($current_signed_item);
+            $current_signed_item = $current_primary_key;
         }
         elsif ( $record_type eq 'fpr' ) {
             my $hex = $fields[9];
             my $f = GnuPG::Fingerprint->new( as_hex_string => $hex );
-            $current_fingerprinted_key->fingerprint($f);
+            $current_key->fingerprint($f);
         }
-        elsif ( $record_type eq 'sig' ) {
+        elsif ( $record_type eq 'sig' or
+                $record_type eq 'rev'
+              ) {
             my (
+                $validity,
                 $algo_num,              $hex_key_id,
-                $signature_date_string, $user_id_string
-            ) = @fields[ 3 .. 5, 9 ];
+                $signature_date,
+                $expiration_date,
+                $user_id_string,
+                $sig_type,
+            ) = @fields[ 1, 3 .. 6, 9, 10 ];
 
-			$signature_date_string = $self->_downrez_gpg2_date($signature_date_string);
+            my $expiration_date_string;
+            if ($expiration_date eq '') {
+              $expiration_date = undef;
+            } else {
+              $expiration_date_string = $self->_downrez_date($expiration_date);
+            }
+            my $signature_date_string = $self->_downrez_date($signature_date);
+
+            my ($sig_class, $is_exportable);
+            if ($sig_type =~ /^([[:xdigit:]]{2})([xl])$/ ) {
+              $sig_class = hex($1);
+              $is_exportable = ('x' eq $2);
+            }
+
             my $signature = GnuPG::Signature->new(
+                validity       => $validity,
                 algo_num       => $algo_num,
                 hex_id         => $hex_key_id,
+                date           => $signature_date,
                 date_string    => $signature_date_string,
-                user_id_string => $user_id_string,
+                expiration_date => $expiration_date,
+                expiration_date_string => $expiration_date_string,
+                user_id_string => unescape_string($user_id_string),
+                sig_class      => $sig_class,
+                is_exportable  => $is_exportable,
             );
 
-            if ( $current_signed_item->isa('GnuPG::UserId') ) {
+            if ( $current_signed_item->isa('GnuPG::Key') ||
+                 $current_signed_item->isa('GnuPG::UserId') ||
+                 $current_signed_item->isa('GnuPG::Revoker') ||
+                 $current_signed_item->isa('GnuPG::UserAttribute')) {
+              if ($record_type eq 'sig') {
                 $current_signed_item->push_signatures($signature);
-            }
-            elsif ( $current_signed_item->isa('GnuPG::SubKey') ) {
-                $current_signed_item->signature($signature);
-            }
-            else {
-                warn "do not know how to handle signature line: $line\n";
+              } elsif ($record_type eq 'rev') {
+                $current_signed_item->push_revocations($signature);
+              }
+            } else {
+              warn "do not know how to handle signature line: $line\n";
             }
         }
         elsif ( $record_type eq 'uid' ) {
@@ -482,32 +522,69 @@ sub get_keys {
 
             $current_signed_item = GnuPG::UserId->new(
                 validity  => $validity,
-                as_string => $user_id_string,
+                as_string => unescape_string($user_id_string),
             );
 
-            $current_key->push_user_ids($current_signed_item);
+            $current_primary_key->push_user_ids($current_signed_item);
+        }
+        elsif ( $record_type eq 'uat' ) {
+            my ( $validity, $subpacket ) = @fields[ 1, 9 ];
+
+            my ( $subpacket_count, $subpacket_total_size ) = split(/ /,$subpacket);
+
+            $current_signed_item = GnuPG::UserAttribute->new(
+                validity  => $validity,
+                subpacket_count => $subpacket_count,
+                subpacket_total_size => $subpacket_total_size,
+            );
+
+            $current_primary_key->push_user_attributes($current_signed_item);
         }
         elsif ( $record_type eq 'sub' or $record_type eq 'ssb' ) {
             my (
                 $validity, $key_length, $algo_num, $hex_id,
-                $creation_date_string, $expiration_date_string,
-                $local_id
-            ) = @fields[ 1 .. 7 ];
+                $creation_date, $expiration_date,
+                $local_id,
+                $dummy0, $dummy1, $dummy2, #unused
+                $usage_flags,
+            ) = @fields[ 1 .. 11 ];
 
-			$creation_date_string = $self->_downrez_gpg2_date($creation_date_string);
-			$expiration_date_string = $self->_downrez_gpg2_date($expiration_date_string);
-            $current_signed_item = $current_fingerprinted_key
+            my $expiration_date_string;
+            if ($expiration_date eq '') {
+              $expiration_date = undef;
+            } else {
+              $expiration_date_string = $self->_downrez_date($expiration_date);
+            }
+            my $creation_date_string = $self->_downrez_date($creation_date);
+
+            $current_signed_item = $current_key
                 = GnuPG::SubKey->new(
                 validity               => $validity,
                 length                 => $key_length,
                 algo_num               => $algo_num,
                 hex_id                 => $hex_id,
+                creation_date          => $creation_date,
+                expiration_date        => $expiration_date,
                 creation_date_string   => $creation_date_string,
                 expiration_date_string => $expiration_date_string,
                 local_id               => $local_id,
+                usage_flags            => $usage_flags,
                 );
 
-            $current_key->push_subkeys($current_signed_item);
+            $current_primary_key->push_subkeys($current_signed_item);
+        }
+        elsif ($record_type eq 'rvk') {
+          my ($algo_num, $fpr, $class) = @fields[ 3,9,10 ];
+          my $rvk = GnuPG::Revoker->new(
+           fingerprint => GnuPG::Fingerprint->new( as_hex_string => $fpr ),
+           algo_num    => ($algo_num + 0),
+           class       => hex($class),
+          );
+          # pushing to either primary key or subkey, to handle
+          # designated revokers to the subkeys too:
+          $current_key->push_revokers($rvk);
+          # revokers should be bound to the key with signatures:
+          $current_signed_item = $rvk;
         }
         elsif ( $record_type ne 'tru' ) {
             warn "unknown record type $record_type";
@@ -516,15 +593,15 @@ sub get_keys {
 
     waitpid $pid, 0;
 
-    push @returned_keys, $current_key
-        if $current_key;
+    push @returned_keys, $current_primary_key
+        if $current_primary_key;
 
     $self->options($saved_options);
 
     return @returned_keys;
 }
 
-sub _downrez_gpg2_date {
+sub _downrez_date {
 	my $self = shift;
 	my $date = shift;
     if ($date =~  /^\d+$/) {
@@ -1108,11 +1185,11 @@ The following setup can be done before any of the following examples:
   my $pid = $gnupg->decrypt( handles => $handles );
 
   # This passes in the passphrase
-  print $passphrase_fd $passphrase;
-  close $passphrase_fd;
+  print $passphrase_fh $passphrase;
+  close $passphrase_fh;
 
   # this passes in the plaintext
-  print $input $_ while <$cipher_file>
+  print $input $_ while <$cipher_file>;
 
   # this closes the communication channel,
   # indicating we are done
@@ -1136,13 +1213,13 @@ The following setup can be done before any of the following examples:
   # and read from our input, because no input is needed!
   my $handles = GnuPG::Handles->new();
   
-  my @ids = [ 'ftobin', '0xABCD1234' ];
+  my @ids = ( 'ftobin', '0xABCD1234' );
 
   # this time we need to specify something for
   # command_args because --list-public-keys takes
   # search ids as arguments
   my $pid = $gnupg->list_public_keys( handles      => $handles,
-                                      command_args => [ @ids ]  );
+                                      command_args => [ @ids ] );
   
    waitpid $pid, 0;
 
