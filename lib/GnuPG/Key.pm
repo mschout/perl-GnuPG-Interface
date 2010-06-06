@@ -34,7 +34,13 @@ has [
     is  => 'rw',
     );
 
-has signatures => (
+has [
+     qw(
+         signatures
+         revokers
+         revocations
+         pubkey_data
+      )] => (
     isa       => 'ArrayRef',
     is        => 'rw',
     default   => sub { [] },
@@ -45,22 +51,10 @@ sub push_signatures {
     push @{ $self->signatures }, @_;
 }
 
-has revocations => (
-    isa       => 'ArrayRef',
-    is        => 'rw',
-    default   => sub { [] },
-);
-
 sub push_revocations {
     my $self = shift;
     push @{ $self->revocations }, @_;
 }
-
-has revokers => (
-    isa       => 'ArrayRef',
-    is        => 'rw',
-    default   => sub { [] },
-);
 
 sub push_revokers {
     my $self = shift;
@@ -70,6 +64,64 @@ sub push_revokers {
 sub short_hex_id {
     my ($self) = @_;
     return substr $self->hex_id(), -8;
+}
+
+sub compare {
+  my ($self, $other, $deep) = @_;
+
+  my @string_comparisons = qw(
+    length
+    algo_num
+    hex_id
+    creation_date
+    creation_date_string
+    usage_flags
+                           );
+
+  my $field;
+  foreach $field (@string_comparisons) {
+    return 0 unless $self->$field eq $other->$field;
+  }
+
+  my @can_be_undef = qw(
+    hex_data
+    expiration_date
+    expiration_date_string
+  );
+  foreach $field (@can_be_undef) {
+    return 0 unless (defined $self->$field) == (defined $other->$field);
+    if (defined $self->$field) {
+      return 0 unless $self->$field eq $other->$field;
+    }
+  }
+  my @objs = qw(
+    fingerprint
+  );
+  foreach $field (@objs) {
+    return 0 unless $self->$field->compare($other->$field, $deep);
+  }
+
+  if (defined $deep && $deep) {
+    my @lists = qw(
+      signatures
+      revokers
+      revocations
+                 );
+    my $i;
+    foreach my $list (@lists) {
+      return 0 unless @{$self->$list} == @{$other->$list};
+      for ( $i = 0; $i < scalar(@{$self->$list}); $i++ ) {
+        return 0
+          unless $self->$list->[$i]->compare($other->$list->[$i], $deep);
+      }
+    }
+
+    return 0 unless @{$self->pubkey_data} == @{$other->pubkey_data};
+    for ( $i = 0; $i < scalar(@{$self->pubkey_data}); $i++ ) {
+      return 0 unless (0 == $self->pubkey_data->[$i]->bcmp($other->pubkey_data->[$i]));
+    }
+  }
+  return 1;
 }
 
 __PACKAGE__->meta->make_immutable;
@@ -114,6 +166,12 @@ initialization of data members.
 This returns the commonly-used short, 8 character short hex id
 of the key.
 
+=item compare( I<$other>, I<$deep> )
+
+Returns non-zero only when this Key is identical to the other
+GnuPG::Key.  If $deep is present and non-zero, the key's associated
+signatures, revocations, and revokers will also be compared.
+
 =back
 
 =head1 OBJECT DATA MEMBERS
@@ -144,7 +202,21 @@ details.
 
 =item hex_data
 
-The data of the key.
+The data of the key.  WARNING: this seems to have never been
+instantiated, and should always be undef.
+
+=item pubkey_data
+
+A list of Math::BigInt objects that correspond to the public key
+material for the given key (this member is empty on secret keys).
+
+For DSA keys, the values are: prime (p), group order (q), group generator (g), y
+
+For RSA keys, the values are: modulus (n), exponent (e)
+
+For El Gamal keys, the values are: prime (p), group generator (g), y
+
+For more details, see: http://tools.ietf.org/html/rfc4880#page-42
 
 =item hex_id
 
