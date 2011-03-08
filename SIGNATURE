@@ -1,5 +1,5 @@
 This file contains message digests of all files listed in MANIFEST,
-signed via the Module::Signature module, version 0.63.
+signed via the Module::Signature module, version 0.66.
 
 To verify the content in this distribution, first make sure you have
 Module::Signature installed, then type:
@@ -15,26 +15,26 @@ not run its Makefile.PL or Build.PL.
 Hash: SHA1
 
 SHA1 187c2cfc1fc31d42c18d5b1653afa1a905bf266c COPYING
-SHA1 c345f9365ecc17136b8dcb98de52885176961027 ChangeLog
+SHA1 f855c37399c772847b488fa182e739c6b4513840 ChangeLog
 SHA1 37e4d07c43f08f41a24fd1157ab530a4a06aab37 MANIFEST
 SHA1 0c5f7bda8a3ce57e27dcd7f32459d8b286f1339e MANIFEST.SKIP
-SHA1 102a7f79158371dd6b398493c86b8d6ab69ce508 META.yml
+SHA1 cdc766d00791fffe2ee49295f2d446476a59593c META.yml
 SHA1 92f709ea03b0b69509ad258553c82905b533d610 Makefile.PL
 SHA1 d6e32c5128419cdbfe6e6f846ff7f64fc0adac2f NEWS
 SHA1 1047dc54823b1321e939274dd261d8e40febee24 README
 SHA1 df07bf5a2dd74ffe4b69dff3063f68879cf9e355 THANKS
-SHA1 1ebec4119486a032a5612a403e8d7b7be973e938 inc/Module/Install.pm
-SHA1 24038af925a69df41972971356ccce885b0fe2ad inc/Module/Install/Base.pm
-SHA1 8f96eddfef548c9328457fbb17a121631cda356b inc/Module/Install/Can.pm
-SHA1 ec29048e48edd9c9c55f9de7b773bd7c904335ad inc/Module/Install/Fetch.pm
-SHA1 0384525d85d51e99532e3ad8729d870113646d14 inc/Module/Install/Makefile.pm
-SHA1 38c657de4d91f5a60ff8e6c6f6a5547daf7c4ab2 inc/Module/Install/Metadata.pm
-SHA1 5c25f1104c0038041e3b93e0660c39171e4caf2b inc/Module/Install/Win32.pm
-SHA1 94d47349c803c4bd2a9230d25e4db0b6aaf1acd8 inc/Module/Install/WriteAll.pm
+SHA1 7305dbe2904416e28decb05396988a5d51d578be inc/Module/Install.pm
+SHA1 129960509127732258570c122042bc48615222e1 inc/Module/Install/Base.pm
+SHA1 cf3356ed9a5bd2f732527ef9e7bc5ef4458c8a93 inc/Module/Install/Can.pm
+SHA1 bf0a3e1977effc2832d7a813a76dce3f31b437b6 inc/Module/Install/Fetch.pm
+SHA1 b721c93ca5bc9a6aa863b49af15f1b1de6125935 inc/Module/Install/Makefile.pm
+SHA1 026cc0551a0ad399d195e395b46bdf842e115192 inc/Module/Install/Metadata.pm
+SHA1 5457015ea5a50e93465bf2dafa29feebd547f85b inc/Module/Install/Win32.pm
+SHA1 051e7fa8063908befa3440508d0584a2497b97db inc/Module/Install/WriteAll.pm
 SHA1 9a2b6c9e5434daf32bc2a3e15e25175fc49fd604 lib/GnuPG/Fingerprint.pm
 SHA1 8852195e80823c93b6aed673e69433ae3ea46d26 lib/GnuPG/Handles.pm
 SHA1 779e6a921fa104e8f16fd4a6d38f670074592811 lib/GnuPG/HashInit.pm
-SHA1 6b2aa225b376440d97e2b8c205c3c7ce450ef1f3 lib/GnuPG/Interface.pm
+SHA1 5876652da41eca33167933cb0da923db4b1041b7 lib/GnuPG/Interface.pm
 SHA1 bb75d45acb8268096348740e261812519b7258cb lib/GnuPG/Key.pm
 SHA1 697b1408b404e4dff0ae553646fb3c12f821fcd4 lib/GnuPG/Options.pm
 SHA1 5fbf442fc1586b88139508b838700b7a3992ced7 lib/GnuPG/PrimaryKey.pm
@@ -95,7 +95,7 @@ SHA1 da39a3ee5e6b4b0d3255bfef95601890afd80709 test/temp
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.10 (GNU/Linux)
 
-iEYEARECAAYFAkwK1YoACgkQEi9d9xCOQEZzAgCgzA6wvNJepwZz3GPjWwvMl+qz
-KOcAoJFkxAbN/T6n3VyNbscHwCUOOWJk
-=6wiz
+iEYEARECAAYFAk12OaAACgkQEi9d9xCOQEbjbgCeMpNwfOE7PRk5PKFD2xJjZz5E
+qXIAn3SxSEjXBwHc5LqqiFq77Aerpmbp
+=bwmq
 -----END PGP SIGNATURE-----
