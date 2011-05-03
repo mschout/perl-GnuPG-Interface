@@ -20,6 +20,7 @@ no_index:
     - test
 requires:
   Any::Moose: 0.04
+  Math::BigInt: 1.78
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.43
+version: 0.44
