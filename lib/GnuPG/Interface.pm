@@ -27,7 +27,7 @@ use Math::BigInt try => 'GMP';
 use GnuPG::Options;
 use GnuPG::Handles;
 
-$VERSION = '0.44';
+$VERSION = '0.45';
 
 has $_ => (
     isa     => 'Any',
@@ -415,7 +415,7 @@ sub get_keys {
     while (<$stdout>) {
         my $line = $_;
         chomp $line;
-        my @fields = split ':', $line;
+        my @fields = split ':', $line, -1;
         next unless @fields > 3;
 
         my $record_type = $fields[0];
@@ -1097,7 +1097,7 @@ The following setup can be done before any of the following examples:
   $gnupg->options->hash_init( armor    => 1,
                               recipients => [ 'ftobin@uiuc.edu',
                                               '0xABCD1234' ],
-                              meta_interactive( 0 ),
+                              meta_interactive => 0 ,
                             );
 
 =head2 Encrypting
