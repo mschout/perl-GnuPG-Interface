@@ -27,7 +27,7 @@ use Math::BigInt try => 'GMP';
 use GnuPG::Options;
 use GnuPG::Handles;
 
-$VERSION = '0.45';
+$VERSION = '0.46';
 
 has $_ => (
     isa     => 'Any',
@@ -120,6 +120,8 @@ sub fork_attach_exec( $% ) {
         = ref $args{command_args}
         ? @{ $args{command_args} }
         : ( $args{command_args} || () );
+    unshift @command_args, "--"
+        if @command_args and $command_args[0] ne "--";
 
     my %fhs;
     foreach my $fh_name (
@@ -745,6 +747,25 @@ sub send_keys( $% ) {
     );
 }
 
+sub search_keys( $% ) {
+    my ( $self, %args ) = @_;
+    return $self->wrap_call(
+        %args,
+        commands => ['--search-keys']
+    );
+}
+
+sub version {
+    my ( $self ) = @_;
+
+    my $out = IO::Handle->new;
+    my $handles = GnuPG::Handles->new( stdout => $out );
+    $self->wrap_call( commands => [ '--version' ], handles => $handles );
+    my $line = $out->getline;
+    $line =~ /(\d+\.\d+\.\d+)/;
+    return $1;
+}
+
 sub test_default_key_passphrase() {
     my ($self) = @_;
 
@@ -928,6 +949,8 @@ initialization of data members.
 
 =item send_keys( % )
 
+=item search_keys( % )
+
 These methods each correspond directly to or are very similar
 to a GnuPG command described in L<gpg>.  Each of these methods
 takes a hash, which currently must contain a key of B<handles>
@@ -1008,6 +1031,10 @@ on whether GnuPG reports a good passphrase was entered
 while signing a short message using the values of
 the B<passphrase> data member, and the default
 key specified in the B<options> data member.
+
+=item version()
+
+Returns the version of GnuPG that GnuPG::Interface is running.
 
 =back
 
@@ -1202,9 +1229,9 @@ The following setup can be done before any of the following examples:
   close $input;
   close $cipher_file;
 
-  my @plaintext    = <$output>;   # reading the output
-  my @error_output = <$error>;    # reading the error
-  my @status_info  = <$status_fh> # read the status info
+  my @plaintext    = <$output>;    # reading the output
+  my @error_output = <$error>;     # reading the error
+  my @status_info  = <$status_fh>; # read the status info
 
   # clean up...
   close $output;
