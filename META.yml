@@ -20,8 +20,10 @@ no_index:
     - t
     - test
 requires:
-  Any::Moose: 0.04
   Math::BigInt: 1.78
+  Moo: 0.091011
+  MooX::HandlesVia: 0.001004
+  MooX::late: 0.014
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.46
+version: 0.47_01

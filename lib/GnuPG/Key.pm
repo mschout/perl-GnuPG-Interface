@@ -14,7 +14,8 @@
 #
 
 package GnuPG::Key;
-use Any::Moose;
+use Moo;
+use MooX::late;
 with qw(GnuPG::HashInit);
 
 has [
@@ -124,8 +125,6 @@ sub compare {
   return 1;
 }
 
-__PACKAGE__->meta->make_immutable;
-
 1;
 
 __END__
@@ -186,7 +185,7 @@ Number of bits in the key.
 
 They algorithm number that the Key is used for.
 
-=item usage flags
+=item usage_flags
 
 The Key Usage flags associated with this key, represented as a string
 of lower-case letters.  Possible values include: (a) authenticate, (c)
