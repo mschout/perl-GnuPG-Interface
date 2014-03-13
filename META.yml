@@ -26,4 +26,4 @@ requires:
   MooX::late: 0.014
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.48
+version: 0.49
