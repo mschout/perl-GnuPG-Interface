@@ -28,7 +28,7 @@ use Math::BigInt try => 'GMP';
 use GnuPG::Options;
 use GnuPG::Handles;
 
-$VERSION = '0.51';
+$VERSION = '0.52';
 
 has $_ => (
     isa     => 'Any',
@@ -595,7 +595,7 @@ sub get_keys {
           my ($pos, $size, $data) = @fields[ 1,2,3 ];
           $current_key->pubkey_data->[$pos+0] = Math::BigInt->from_hex('0x'.$data);
         }
-        elsif ( $record_type ne 'tru' ) {
+        elsif ( $record_type ne 'tru' and $record_type ne 'grp' ) {
             warn "unknown record type $record_type";
         }
     }
@@ -659,7 +659,7 @@ sub encrypt( $% ) {
 
 sub encrypt_symmetrically( $% ) {
     my ( $self, %args ) = @_;
-    # Strip the homedir and put it back after encrpyting; gpg 2.0.x
+    # Strip the homedir and put it back after encrypting; gpg 2.0.x
     # fails symmetric encryption when one is passed.
     my $homedir = $self->options->homedir;
     $self->options->clear_homedir;
